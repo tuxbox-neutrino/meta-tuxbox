@@ -1,4 +1,6 @@
-PR:append = ".2"
+PR:append = ".3"
+
+FILESEXTRAPATHS:prepend := "${THISDIR}/linux-gfutures:"
 
 do_configure:append() {
     # TODO: Re-enable XFS/i40e after GCC compatibility fixes (patches or older GCC for kernel build).
