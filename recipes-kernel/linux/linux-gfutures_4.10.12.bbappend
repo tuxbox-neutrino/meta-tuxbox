@@ -5,7 +5,10 @@ do_configure:append() {
             --disable I40E \
             --disable I40EVF \
             --disable I40E_DCB \
-            --disable XFS_FS
+            --disable XFS_FS \
+            --disable SCSI_QLA_FC \
+            --disable TCM_QLA2XXX \
+            --disable SCSI_QLA4XXX
         oe_runmake olddefconfig
     else
         bbwarn "scripts/config not found, skipping kernel config tweaks"
