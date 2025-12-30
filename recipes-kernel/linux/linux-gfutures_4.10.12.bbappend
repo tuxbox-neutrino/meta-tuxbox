@@ -1,4 +1,4 @@
-PR:append = ".1"
+PR:append = ".2"
 
 do_configure:append() {
     # TODO: Re-enable XFS/i40e after GCC compatibility fixes (patches or older GCC for kernel build).
@@ -16,7 +16,8 @@ do_configure:append() {
             --disable VHOST \
             --disable VHOST_NET \
             --disable VHOST_SCSI \
-            --disable VHOST_VSOCK
+            --disable VHOST_VSOCK \
+            --enable CIFS_SMB2
         oe_runmake olddefconfig
     else
         bbwarn "scripts/config not found, skipping kernel config tweaks"
