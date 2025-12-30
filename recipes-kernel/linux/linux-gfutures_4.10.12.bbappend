@@ -1,3 +1,5 @@
+PR:append = ".1"
+
 do_configure:append() {
     # TODO: Re-enable XFS/i40e after GCC compatibility fixes (patches or older GCC for kernel build).
     if [ -x "${S}/scripts/config" ]; then
@@ -8,7 +10,13 @@ do_configure:append() {
             --disable XFS_FS \
             --disable SCSI_QLA_FC \
             --disable TCM_QLA2XXX \
-            --disable SCSI_QLA4XXX
+            --disable SCSI_QLA4XXX \
+            --disable SCSI_QLA_ISCSI \
+            --disable QLA3XXX \
+            --disable VHOST \
+            --disable VHOST_NET \
+            --disable VHOST_SCSI \
+            --disable VHOST_VSOCK
         oe_runmake olddefconfig
     else
         bbwarn "scripts/config not found, skipping kernel config tweaks"
