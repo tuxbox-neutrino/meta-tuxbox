@@ -1,4 +1,5 @@
 do_configure:append() {
+    # TODO: Re-enable XFS/i40e after GCC compatibility fixes (patches or older GCC for kernel build).
     if [ -x "${S}/scripts/config" ]; then
         ${S}/scripts/config --file ${B}/.config \
             --disable I40E \
