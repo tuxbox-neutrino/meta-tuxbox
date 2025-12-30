@@ -1,4 +1,4 @@
-PR:append = ".4"
+PR:append = ".5"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux-gfutures:"
 
@@ -28,6 +28,21 @@ python do_patch:prepend() {
                         subprocess.check_call(["git", "-C", s, "clean", "-fdx"])
         except ValueError:
             pass
+}
+
+do_configure:prepend() {
+    local local_dir="${WORKDIR}/oe-local-files"
+    local devtool_dir="${DEVTOOL_TEMPDIR}/oe-local-files"
+
+    for local_dir in "${local_dir}" "${devtool_dir}"; do
+        [ -d "${local_dir}" ] || continue
+        for name in initramfs-subdirboot.cpio.gz findkerneldevice.sh; do
+            if [ ! -e "${WORKDIR}/${name}" ] && [ -e "${local_dir}/${name}" ]; then
+                bbnote "Restoring ${name} from ${local_dir}"
+                cp -a "${local_dir}/${name}" "${WORKDIR}/${name}"
+            fi
+        done
+    done
 }
 
 do_configure:append() {
