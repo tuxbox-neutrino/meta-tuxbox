@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".1"
+PR:append = ".3"
 
 # Package private Samba libraries to avoid QA "installed-vs-shipped"
 PACKAGES += "${PN}-private-libs"
@@ -64,4 +64,13 @@ pkg_prerm:${BPN}-common () {
 
 pkg_postrm:${BPN}-common () {
     rm $D/etc/samba/distro/smb-vmc.conf 2>/dev/null || true
+}
+
+python __anonymous() {
+    bpn = d.getVar("BPN") or "samba"
+    key = "pkg_postinst:%s-common" % bpn
+    val = d.getVar(key) or ""
+    marker = "#!/bin/sh"
+    if marker in val:
+        d.setVar(key, val.split(marker, 1)[0].rstrip())
 }
