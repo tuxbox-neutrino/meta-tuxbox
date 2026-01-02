@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r1"
+PR = "r2"
 
 # Conditional large image packages (excluded on small flash devices)
 # Placeholder for optional large-image extras (add real packagegroups later)
@@ -32,3 +32,6 @@ rootfs_preprocess_resolvconf() {
     rm -f ${IMAGE_ROOTFS}/etc/resolv.conf || true
 }
 ROOTFS_PREPROCESS_COMMAND += " rootfs_preprocess_resolvconf;"
+
+# Avoid non-deterministic task signatures when IMAGE_NAME includes DATETIME.
+do_image_hdfastboot8gb[vardepsexclude] += " IMAGE_NAME"
