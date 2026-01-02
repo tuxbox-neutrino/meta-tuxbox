@@ -18,7 +18,16 @@ DEPENDS:append = " virtual/lua"
 # (overrides upstream do_compile)
 do_compile() {
     ${STAGING_BINDIR_NATIVE}/lua ${S}/build-aux/luke \
+        LUAVERSION=${LUA_VERSION} \
         CFLAGS="-I${STAGING_INCDIR}/luajit-2.1"
+}
+
+do_install() {
+    ${S}/build-aux/luke PREFIX=${D}${prefix} \
+        LUAVERSION=${LUA_VERSION} \
+        INST_LIBDIR=${D}${libdir}/lua/${LUA_VERSION} \
+        INST_LUADIR=${D}${datadir}/lua/${LUA_VERSION} \
+        install
 }
 
 PR:append = ".1"
