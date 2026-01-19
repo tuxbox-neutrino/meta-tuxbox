@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".1"
+PR:append = ".2"
 
 SRC_URI:append = " file://client.conf \
 		   file://default.pa \
@@ -52,21 +52,24 @@ RDEPENDS_${PN}-pa-info += "bash"
 RDEPENDS_${PN} += "bash"
 		
 do_install:append() {
-	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants
 	install -m644 ${WORKDIR}/pulseaudio-system.conf ${D}${sysconfdir}/dbus-1/system.d
 	install -m644 ${WORKDIR}/pulseaudio-bluetooth.conf ${D}${sysconfdir}/dbus-1/system.d
 	install -m644 ${WORKDIR}/system.pa ${D}${sysconfdir}/pulse
 	install -m644 ${WORKDIR}/default.pa ${D}${sysconfdir}/pulse
 	install -m644 ${WORKDIR}/client.conf ${D}${sysconfdir}/pulse
 	install -m644 ${WORKDIR}/daemon.conf ${D}${sysconfdir}/pulse
-	install -m644 ${WORKDIR}/pulseaudio.service ${D}${systemd_unitdir}/system
-	install -m644 ${WORKDIR}/pulseaudio.socket ${D}${systemd_unitdir}/system
-	ln -sf ${systemd_unitdir}/system/pulseaudio.service ${D}${systemd_unitdir}/system/multi-user.target.wants
-	ln -sf ${systemd_unitdir}/system/pulseaudio.socket ${D}${systemd_unitdir}/system/multi-user.target.wants	
 }
+
+do_install:append:systemd() {
+	install -d ${D}${systemd_system_unitdir}
+	install -m 0644 ${WORKDIR}/pulseaudio.service ${D}${systemd_system_unitdir}
+	install -m 0644 ${WORKDIR}/pulseaudio.socket ${D}${systemd_system_unitdir}
+}
+
+SYSTEMD_SERVICE:${PN}-server:append = " pulseaudio.socket"
+
+FILES:${PN}-server:append = " ${systemd_system_unitdir}/*"
 
 FILES_${PN}-server += "${systemd_system_unitdir}/* ${systemd_system_unitdir}/multi-user.target.wants/* ${systemd_user_unitdir}/*"
 FILES_${PN}-misc += "${bindir}/* ${libdir}/pulseaudio/libpulsedsp.so ${libexecdir}/pulse ${datadir}/GConf ${datadir}/pulseaudio"
 FILES_${PN}-dev += "${datadir}/vala"
-
-FILES_${PN} += "${systemd_unitdir}"
