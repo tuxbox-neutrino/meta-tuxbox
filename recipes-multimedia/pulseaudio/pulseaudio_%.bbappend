@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".2"
+PR:append = ".3"
 
 SRC_URI:append = " file://client.conf \
 		   file://default.pa \
@@ -12,7 +12,7 @@ SRC_URI:append = " file://client.conf \
 		   file://daemon.conf \
 "
 
-PACKAGECONFIG:append = " systemd autospawn-for-root"
+PACKAGECONFIG:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd','',d)} autospawn-for-root"
 
 RRECOMMENDS_${PN} += " \
 		alsa-utils \
