@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+PR:append = ".1"
+
 SRC_URI:append = " file://client.conf \
 		   file://default.pa \
 		   file://pulseaudio.service \
@@ -10,7 +12,7 @@ SRC_URI:append = " file://client.conf \
 		   file://daemon.conf \
 "
 
-PACKAGECONFIG:append = "systemd autospawn-for-root"
+PACKAGECONFIG:append = " systemd autospawn-for-root"
 
 RRECOMMENDS_${PN} += " \
 		alsa-utils \
@@ -45,6 +47,9 @@ RRECOMMENDS_${PN} += " \
 		pulseaudio-module-switch-on-connect \
 		pulseaudio-module-systemd-login \
 		"
+
+RDEPENDS_${PN}-pa-info += "bash"
+RDEPENDS_${PN} += "bash"
 		
 do_install:append() {
 	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants
@@ -60,5 +65,8 @@ do_install:append() {
 	ln -sf ${systemd_unitdir}/system/pulseaudio.socket ${D}${systemd_unitdir}/system/multi-user.target.wants	
 }
 
-FILES_${PN} += "${systemd_unitdir}"
+FILES_${PN}-server += "${systemd_system_unitdir}/* ${systemd_system_unitdir}/multi-user.target.wants/* ${systemd_user_unitdir}/*"
+FILES_${PN}-misc += "${bindir}/* ${libdir}/pulseaudio/libpulsedsp.so ${libexecdir}/pulse ${datadir}/GConf ${datadir}/pulseaudio"
+FILES_${PN}-dev += "${datadir}/vala"
 
+FILES_${PN} += "${systemd_unitdir}"
