@@ -8,7 +8,3 @@ PKGV = "${GITPKGVTAG}"
 # Keep feed versions monotonic versus the old r5.x series.
 PR = "r6"
 PR:append = ".3"
-
-inherit gitpkgv
-SRCREV = "${AUTOREV}"
-PKGV = "${GITPKGVTAG}"
