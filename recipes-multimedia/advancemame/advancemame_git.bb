@@ -11,6 +11,7 @@ SRC_URI = "git://github.com/amadvance/${BPN}.git;protocol=https;branch=master \
 	   file://advmame.lua \
 	   file://advmame_hint.png \
 	   file://0001-fix-format-security.patch \
+	   file://0002-fix-format-security-blue.patch \
 "
 
 SRCREV = "${AUTOREV}"
@@ -18,7 +19,7 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "virtual/libsdl2 alsa-lib ncurses freetype zlib expat"
 
-PR = "r3"
+PR = "r4"
 
 inherit autotools-brokensep pkgconfig gettext systemd
 

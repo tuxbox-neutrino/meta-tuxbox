@@ -1,0 +1,24 @@
+From 6f2c1c9d98c9f7c1b5c5bde7b8d2dff3d2c4f8a1 Mon Sep 17 00:00:00 2001
+From: Tuxbox Neutrino Team <team@tuxbox-neutrino.org>
+Date: Tue, 20 Jan 2026 12:14:00 +0100
+Subject: [PATCH] blue: fix format-security warning
+
+Use an explicit format string to avoid -Werror=format-security.
+---
+ advance/blue/blue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/advance/blue/blue.c b/advance/blue/blue.c
+index 1234567..89abcde 100644
+--- a/advance/blue/blue.c
++++ b/advance/blue/blue.c
+@@ -319,7 +319,7 @@
+ 		name += 5;
+ 		while (*name != 0 && isspace(*name))
+ 			++name;
+-		snprintf(dev->name, sizeof(dev->name), name);
++		snprintf(dev->name, sizeof(dev->name), "%s", name);
+ 	}
+ 
+ 	if (strstr(line, "Icon: input-gaming")) {
+*** End Patch
