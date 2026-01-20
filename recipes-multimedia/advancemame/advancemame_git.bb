@@ -10,6 +10,7 @@ SRC_URI = "git://github.com/amadvance/${BPN}.git;protocol=https;branch=master \
 	   file://advmame.cfg \
 	   file://advmame.lua \
 	   file://advmame_hint.png \
+	   file://0001-fix-format-security.patch \
 "
 
 SRCREV = "${AUTOREV}"
@@ -17,12 +18,14 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "virtual/libsdl2 alsa-lib ncurses freetype zlib expat"
 
-PR = "r1"
+PR = "r3"
 
 inherit autotools-brokensep pkgconfig gettext systemd
 
 SYSTEMD_SERVICE:${PN} = "advmame@.service"
 SYSTEMD_AUTO_ENABLE = "disable"
+
+EXTRA_OECONF += "--disable-vc"
 
 do_configure:prepend() {
     # Upstream doesn't ship this and autoreconf won't install it as automake isn't used.
