@@ -20,7 +20,7 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "virtual/libsdl2 alsa-lib ncurses freetype zlib expat"
 
-PR = "r5"
+PR = "r6"
 
 inherit autotools-brokensep pkgconfig gettext systemd
 
@@ -40,11 +40,10 @@ do_install:append() {
 	install -m644 ${WORKDIR}/advmame.cfg ${D}${datadir}/tuxbox/neutrino/plugins
 	install -m644 ${WORKDIR}/advmame.lua ${D}${datadir}/tuxbox/neutrino/plugins
 	install -m644 ${WORKDIR}/advmame_hint.png ${D}${datadir}/tuxbox/neutrino/plugins
-}
-
-do_install:append:systemd() {
-	install -d ${D}${systemd_unitdir}/system
-	install -m 0644 ${WORKDIR}/advmame@.service ${D}${systemd_unitdir}/system
+	if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${WORKDIR}/advmame@.service ${D}${systemd_system_unitdir}
+	fi
 }
 
 FILES:${PN} += "${datadir} \
@@ -52,6 +51,6 @@ FILES:${PN} += "${datadir} \
 		${base_libdir} \
 "
 
-FILES:${PN}:append = " ${systemd_unitdir}/system"
+FILES:${PN}:append = " ${systemd_system_unitdir}"
 
 FILES:${PN}-doc += "${prefix}/doc/* ${prefix}/man/*"
