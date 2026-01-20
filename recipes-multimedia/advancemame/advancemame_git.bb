@@ -46,11 +46,11 @@ do_install:append:systemd() {
 	install -m 0644 ${WORKDIR}/advmame@.service ${D}${systemd_unitdir}/system
 }
 
-FILES_${PN} += "${datadir} \
+FILES:${PN} += "${datadir} \
 		${sysconfdir} \
 		${base_libdir} \
 "
 
 FILES:${PN}:append = " ${systemd_unitdir}/system"
 
-FILES_${PN}-doc += "${prefix}/doc/* ${prefix}/man/*"
+FILES:${PN}-doc += "${prefix}/doc/* ${prefix}/man/*"

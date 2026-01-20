@@ -16,5 +16,4 @@ do_install() {
 	install -m 644 ${WORKDIR}/90-valve-sc.rules ${D}${sysconfdir}/udev/rules.d
 }
 
-FILES_${PN} += "${sysconfdir}"
-
+FILES:${PN} += "${sysconfdir}"

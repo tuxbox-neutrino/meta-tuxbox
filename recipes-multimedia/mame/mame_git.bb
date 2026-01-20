@@ -196,7 +196,7 @@ EOF
 }
 
 PACKAGES =+ "${PN}-tools"
-FILES_${PN}-tools = " \
+FILES:${PN}-tools = " \
     ${bindir}/castool \
     ${bindir}/chdman \
     ${bindir}/floptool \

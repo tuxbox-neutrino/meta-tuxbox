@@ -38,4 +38,4 @@ do_install:append() {
 	rm -r ${D}${datadir}/icons
 }
 
-FILES_${PN} += "${datadir}/metainfo"
+FILES:${PN} += "${datadir}/metainfo"
