@@ -1,8 +1,9 @@
 SUMMARY = "AdvanceMame Arcade emulator"
 HOMEPAGE = "https://www.advancemame.it/"
 SECTION = "emulators"
-LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://COPYING;md5=8ca43cbc842c2336e835926c2166c28b"
+LICENSE = "GPLv2 & MAME"
+LICENSE_FLAGS = "commercial"
+LIC_FILES_CHKSUM = "file://COPYING;md5=83348388df42cecffc92b13d7b23899a"
 
 SRC_URI = "git://github.com/amadvance/${BPN}.git;protocol=https;branch=master \
 	   file://advmame.rc \
@@ -19,7 +20,7 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "virtual/libsdl2 alsa-lib ncurses freetype zlib expat"
 
-PR = "r4"
+PR = "r5"
 
 inherit autotools-brokensep pkgconfig gettext systemd
 
