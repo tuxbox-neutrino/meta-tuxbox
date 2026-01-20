@@ -16,15 +16,16 @@ DEPENDS = " \
 inherit autotools-brokensep pkgconfig dos2unix
 
 SRC_URI = " \
-    git://github.com/joncampbell123/dosbox-x.git;protocol=https;branch=master \
+    https://github.com/joncampbell123/dosbox-x/archive/${SRCREV}.tar.gz \
     file://0001-use-pkgconfig-to-find-sdl2.patch \
     file://0002-Enable-unaligned-memory-based-on-recipe-s-suggestion.patch \
     file://0003-Treat-all-arm-hosts-as-armv7.patch \
     file://0004-Fix-build-with-Werror-format-security.patch \
 "
+SRC_URI[sha256sum] = "85d6699244f94c97171ce3ce49004d517b1919a3ad0cf1b98add858cf75c080c"
 SRCREV = "9e9d7acd934862208f20479cc8069404fa06fa03"
 PV = "0.83.8"
-S = "${WORKDIR}/git"
+S = "${WORKDIR}/${BPN}-${SRCREV}"
 
 EXTRA_OECONF = " \
     --disable-sdl \
