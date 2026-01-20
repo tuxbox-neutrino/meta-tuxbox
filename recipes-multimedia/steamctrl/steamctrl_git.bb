@@ -4,7 +4,7 @@ SECTION = "games"
 LICENSE = "GPL-3.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
-DEPENDS = "systemd"
+DEPENDS = "udev"
 
 SRC_URI = "git://github.com/rodrigorc/steamctrl.git;protocol=https;branch=master \
 "
@@ -12,5 +12,6 @@ SRC_URI = "git://github.com/rodrigorc/steamctrl.git;protocol=https;branch=master
 SRCREV = "${AUTOREV}"
 S = "${WORKDIR}/git"
 
-inherit autotools pkgconfig
+PR = "r1"
 
+inherit autotools pkgconfig

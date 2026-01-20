@@ -17,7 +17,12 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "virtual/libsdl2 alsa-lib ncurses freetype zlib expat"
 
-inherit autotools-brokensep pkgconfig gettext
+PR = "r1"
+
+inherit autotools-brokensep pkgconfig gettext systemd
+
+SYSTEMD_SERVICE:${PN} = "advmame@.service"
+SYSTEMD_AUTO_ENABLE = "disable"
 
 do_configure:prepend() {
     # Upstream doesn't ship this and autoreconf won't install it as automake isn't used.
@@ -25,17 +30,23 @@ do_configure:prepend() {
 }
 
 do_install:append() {
-	install -d ${D}${sysconfdir} -d ${D}${systemd_unitdir}/system -d ${D}${datadir}/tuxbox/neutrino/plugins
+	install -d ${D}${sysconfdir} -d ${D}${datadir}/tuxbox/neutrino/plugins
 	install -m644 ${WORKDIR}/advmame.rc ${D}${sysconfdir}
-	install -m644 ${WORKDIR}/advmame@.service ${D}${systemd_unitdir}/system
 	install -m644 ${WORKDIR}/advmame.cfg ${D}${datadir}/tuxbox/neutrino/plugins
 	install -m644 ${WORKDIR}/advmame.lua ${D}${datadir}/tuxbox/neutrino/plugins
 	install -m644 ${WORKDIR}/advmame_hint.png ${D}${datadir}/tuxbox/neutrino/plugins
+}
+
+do_install:append:systemd() {
+	install -d ${D}${systemd_unitdir}/system
+	install -m 0644 ${WORKDIR}/advmame@.service ${D}${systemd_unitdir}/system
 }
 
 FILES_${PN} += "${datadir} \
 		${sysconfdir} \
 		${base_libdir} \
 "
+
+FILES:${PN}:append = " ${systemd_unitdir}/system"
 
 FILES_${PN}-doc += "${prefix}/doc/* ${prefix}/man/*"
