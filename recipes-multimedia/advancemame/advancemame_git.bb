@@ -1,7 +1,7 @@
 SUMMARY = "AdvanceMame Arcade emulator"
 HOMEPAGE = "https://www.advancemame.it/"
 SECTION = "emulators"
-LICENSE = "GPLv2 & MAME"
+LICENSE = "GPL-2.0-only & MAME"
 LICENSE_FLAGS = "commercial"
 LIC_FILES_CHKSUM = "file://COPYING;md5=83348388df42cecffc92b13d7b23899a"
 
