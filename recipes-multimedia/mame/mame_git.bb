@@ -9,8 +9,8 @@ SRC_URI = " \
     file://0001-patch-header-for-broadcom-stb.patch \
 "
 PV = "0224"
-SRCREV = "72be63e246b6f4f4cfa991a47f7a23645ce403ad"
-#SRCREV = "5892c78a15231c2aa5c2ddda497e91d4c8dbd22d"
+# mame0224 tag
+SRCREV = "5892c78a15231c2aa5c2ddda497e91d4c8dbd22d"
 S = "${WORKDIR}/git"
 
 inherit pkgconfig
@@ -64,7 +64,7 @@ EXTRA_OEMAKE = " \
     USE_SYSTEM_LIB_FLAC=1 \
     USE_SYSTEM_LIB_JPEG=1 \
     USE_SYSTEM_LIB_GLM=0 \
-    USE_SYSTEM_LIB_LUA=1 \
+    USE_SYSTEM_LIB_LUA=luajit-5.1:${STAGING_INCDIR}/luajit-2.1 \
     USE_SYSTEM_LIB_PORTAUDIO=1 \
     USE_SYSTEM_LIB_PORTMIDI=1 \
     USE_SYSTEM_LIB_PUGIXML=1 \
