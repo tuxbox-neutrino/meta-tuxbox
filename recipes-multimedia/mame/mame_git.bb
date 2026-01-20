@@ -7,6 +7,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=c9c1babc1ba9605e7b9d320d2d4f6be7"
 SRC_URI = " \
     git://github.com/mamedev/mame.git;protocol=https;branch=master \
     file://0001-patch-header-for-broadcom-stb.patch \
+    file://0002-guard-sdl-scancode-audioplay.patch \
 "
 PV = "0224"
 # mame0224 tag

@@ -1,0 +1,40 @@
+From c7fef5d0f58e91fd3d9fd6f9048d7f6dbe5b1846 Mon Sep 17 00:00:00 2001
+From: Tuxbox Neutrino Team <team@tuxbox-neutrino.org>
+Date: Tue, 20 Jan 2026 18:22:00 +0100
+Subject: [PATCH] osd: guard SDL audio play scancode
+
+SDL2 2.0.20 doesn't provide SDL_SCANCODE_AUDIOPLAY yet.
+Guard the lookup table entry to keep older SDL2 builds working.
+---
+ src/osd/modules/input/input_sdl.cpp | 2 ++
+ src/tools/testkeys.cpp              | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/osd/modules/input/input_sdl.cpp b/src/osd/modules/input/input_sdl.cpp
+index 9ac5d11..20a1a6c 100644
+--- a/src/osd/modules/input/input_sdl.cpp
++++ b/src/osd/modules/input/input_sdl.cpp
+@@ -294,7 +294,9 @@ static key_lookup_table sdl_lookup_table[] =
+ 	KE(AUDIONEXT)
+ 	KE(AUDIOPREV)
+ 	KE(AUDIOSTOP)
++#ifdef SDL_SCANCODE_AUDIOPLAY
+ 	KE(AUDIOPLAY)
++#endif
+ 	KE(AUDIOMUTE)
+ 	KE(MEDIASELECT)
+ 	KE(WWW)
+diff --git a/src/tools/testkeys.cpp b/src/tools/testkeys.cpp
+index 5d8d544..0cdb2a1 100644
+--- a/src/tools/testkeys.cpp
++++ b/src/tools/testkeys.cpp
+@@ -257,7 +257,9 @@ static key_lookup_table sdl_lookup_table[] =
+ 	KE(AUDIONEXT)
+ 	KE(AUDIOPREV)
+ 	KE(AUDIOSTOP)
++#ifdef SDL_SCANCODE_AUDIOPLAY
+ 	KE(AUDIOPLAY)
++#endif
+ 	KE(AUDIOMUTE)
+ 	KE(MEDIASELECT)
+ 	KE(WWW)
