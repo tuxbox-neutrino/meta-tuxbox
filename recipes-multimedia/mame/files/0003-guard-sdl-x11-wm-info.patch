@@ -1,0 +1,42 @@
+From 1a2b3c4d5e6f7890abcdef1234567890abcdef12 Mon Sep 17 00:00:00 2001
+From: Tuxbox Neutrino Team <team@tuxbox-neutrino.org>
+Date: Tue, 20 Jan 2026 19:14:00 +0100
+Subject: [PATCH] osd: guard SDL X11 WM access
+
+SDL built without X11 doesn't expose SDL_SysWMinfo.x11.
+Guard X11 access so builds succeed on non-X11 SDL2.
+---
+ src/osd/modules/render/drawbgfx.cpp | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/src/osd/modules/render/drawbgfx.cpp b/src/osd/modules/render/drawbgfx.cpp
+index 5e34eaa..57d7c6b 100644
+--- a/src/osd/modules/render/drawbgfx.cpp
++++ b/src/osd/modules/render/drawbgfx.cpp
+@@ -169,7 +169,11 @@ static void* sdlNativeWindowHandle(SDL_Window* _window)
+ 
+-#   if BX_PLATFORM_LINUX || BX_PLATFORM_BSD || BX_PLATFORM_RPI
++#   if BX_PLATFORM_LINUX || BX_PLATFORM_BSD || BX_PLATFORM_RPI
++#       if defined(SDL_VIDEO_DRIVER_X11)
+ 	return (void*)wmi.info.x11.window;
++#       else
++	return nullptr;
++#       endif
+ #   elif BX_PLATFORM_OSX
+ 	return wmi.info.cocoa.window;
+ #   elif BX_PLATFORM_WINDOWS
+@@ -192,8 +196,12 @@ inline bool sdlSetWindow(SDL_Window* _window)
+ 
+ 	bgfx::PlatformData pd;
+ #   if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
+-	pd.ndt          = wmi.info.x11.display;
+-	pd.nwh          = (void*)(uintptr_t)wmi.info.x11.window;
++#       if defined(SDL_VIDEO_DRIVER_X11)
++	pd.ndt          = wmi.info.x11.display;
++	pd.nwh          = (void*)(uintptr_t)wmi.info.x11.window;
++#       else
++	return false;
++#       endif
+ #   elif BX_PLATFORM_OSX
+ 	pd.ndt          = NULL;
+ 	pd.nwh          = wmi.info.cocoa.window;

@@ -8,8 +8,10 @@ SRC_URI = " \
     git://github.com/mamedev/mame.git;protocol=https;branch=master \
     file://0001-patch-header-for-broadcom-stb.patch \
     file://0002-guard-sdl-scancode-audioplay.patch \
+    file://0003-guard-sdl-x11-wm-info.patch \
 "
 PV = "0224"
+PR = "r1"
 # mame0224 tag
 SRCREV = "5892c78a15231c2aa5c2ddda497e91d4c8dbd22d"
 S = "${WORKDIR}/git"
