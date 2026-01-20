@@ -21,12 +21,11 @@ PACKAGECONFIG[jack] = "--with-jack, --without-jack, jack,"
 EXTRA_OECONF = "--without-oss --without-asihpi"
 
 do_install:append() {
-    mkdir --parents ${D}${bindir}
+    install -d ${D}${bindir}
     for b in ${B}/bin/pa*; do
-        # Bit nasty, should always work
-        ${B}/*-libtool --mode install install $b ${D}${bindir}
+        ${B}/libtool --mode install install $b ${D}${bindir}
     done
 }
 
 PACKAGES += "portaudio-examples"
-FILES_portaudio-examples = "${bindir}"
+FILES:portaudio-examples = "${bindir}"
