@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-PR:append = ".1"
+PR:append = ".2"
 
 SRC_URI:append = " file://tvheadend.service"
 
@@ -26,15 +26,13 @@ EXTRA_OECONF:append = " \
 inherit systemd
 SYSTEMD_SERVICE:${PN} = "tvheadend.service"
 
-do_install:append() {
-    if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
-        install -d ${D}${systemd_unitdir}/system
-        install -m 0644 ${WORKDIR}/tvheadend.service \
-            ${D}${systemd_unitdir}/system/tvheadend.service
-    fi
+do_install:append:systemd() {
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/tvheadend.service \
+        ${D}${systemd_system_unitdir}/tvheadend.service
 }
 
-FILES:${PN} += "${systemd_unitdir}/system"
+FILES:${PN}:append:systemd = " ${systemd_system_unitdir}"
 
 pkg_preinst:${PN} () {
     #!/bin/sh
