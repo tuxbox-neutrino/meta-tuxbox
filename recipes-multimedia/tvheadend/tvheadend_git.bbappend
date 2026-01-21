@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-PR:append = ".4"
+PR:append = ".5"
 
 SRC_URI:append = " file://tvheadend.service"
 
@@ -24,7 +24,7 @@ EXTRA_OECONF:append = " \
 "
 
 inherit systemd
-SYSTEMD_SERVICE:${PN} = "tvheadend.service"
+SYSTEMD_SERVICE:${PN}:systemd = "tvheadend.service"
 
 do_install:append:systemd() {
     install -d ${D}${systemd_system_unitdir}
