@@ -1,7 +1,7 @@
 DESCRIPTION = "xupnpd - eXtensible UPnP agent"
 HOMEPAGE = "http://xupnpd.org"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://../LICENSE;md5=193ff0a3bc8b0d2cb0d1d881586d3388"
 
 DEPENDS += "virtual/lua openssl"
@@ -14,12 +14,14 @@ SRC_URI = "\
 "	
 
 PV = "${SRCPV}"
+PR = "r1"
 
 S = "${WORKDIR}/git/src"
 
 inherit base systemd
 
-SYSTEMD_SERVICE_${PN} = "xupnpd.service"
+SYSTEMD_SERVICE:${PN}:systemd = "xupnpd.service"
+SYSTEMD_AUTO_ENABLE:systemd = "enable"
 
 # this is very ugly, but the xupnpd makefile is utter crap :-(
 SRC = "main.cpp soap.cpp mem.cpp mcast.cpp luaxlib.cpp luaxcore.cpp luajson.cpp luajson_parser.cpp"
@@ -33,13 +35,22 @@ do_compile () {
 
 
 do_install () {
-	install -d -m 0644 ${D}/usr/share/xupnpd/config ${D}/usr/share/xupnpd/playlists ${D}/usr/share/xupnpd/plugins ${D}${systemd_unitdir}/system ${D}${sysconfdir}/systemd/system/multi-user.target.wants/ ${D}${sysconfdir}/systemd/system/timers.target.wants/
-	install -m 644 ${WORKDIR}/xupnpd.service ${D}${systemd_unitdir}/system/xupnpd.service
-	ln -sf ${systemd_unitdir}/system/xupnpd.service ${D}${sysconfdir}/systemd/system/multi-user.target.wants/xupnpd.service
+	install -d ${D}${bindir} \
+		${D}${datadir}/xupnpd/config \
+		${D}${datadir}/xupnpd/playlists \
+		${D}${datadir}/xupnpd/plugins
 	install -D -m 0755 ${S}/xupnpd ${D}${bindir}/xupnpd
-	install -m 644 ${S}/plugins/xupnpd_stb.lua ${D}/usr/share/xupnpd/plugins
-	cp -r ${S}/profiles	${D}/usr/share/xupnpd/
-	cp -r ${S}/ui		${D}/usr/share/xupnpd/
-	cp -r ${S}/www		${D}/usr/share/xupnpd/
-	cp ${S}/*.lua		${D}/usr/share/xupnpd/
+	install -m 0644 ${S}/plugins/xupnpd_stb.lua ${D}${datadir}/xupnpd/plugins
+	cp -r ${S}/profiles	${D}${datadir}/xupnpd/
+	cp -r ${S}/ui		${D}${datadir}/xupnpd/
+	cp -r ${S}/www		${D}${datadir}/xupnpd/
+	cp ${S}/*.lua		${D}${datadir}/xupnpd/
 }
+
+do_install:append:systemd () {
+	install -d ${D}${systemd_system_unitdir}
+	install -m 0644 ${WORKDIR}/xupnpd.service \
+		${D}${systemd_system_unitdir}/xupnpd.service
+}
+
+FILES:${PN}:append:systemd = " ${systemd_system_unitdir}"
