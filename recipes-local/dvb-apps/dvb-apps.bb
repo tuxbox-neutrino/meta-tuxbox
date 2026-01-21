@@ -1,7 +1,7 @@
 HOMEPAGE = "http://www.linuxtv.org"
 SUMMARY = "Linux DVB API applications and utilities"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=751419260aa954499f7abaabaa882bbe"
 
 SRC_URI = "git://github.com/atvcaptain/dvb-apps.git;protocol=https;branch=master \
@@ -10,6 +10,8 @@ SRC_URI = "git://github.com/atvcaptain/dvb-apps.git;protocol=https;branch=master
            "
 
 SRCREV = "${AUTOREV}"
+
+PR = "r1"
 
 DEPENDS += "virtual/libiconv"
 
@@ -70,51 +72,54 @@ PACKAGES =+ "dvb-evtest dvb-evtest-dbg \
              dvb-tzap dvb-tzap-dbg \
              dvb-femon dvb-femon-dbg \
              dvb-zap-data"
+PACKAGES =+ "libdvbapi libdvbcfg libdvben50221 \
+             libesg libucsi libdvbsec"
 
 
-FILES_${PN} = "${bindir} ${libdir} ${datadir}/dvb"
-FILES_${PN}-doc = ""
-FILES_${PN}-dev = "${includedir}"
+RDEPENDS:dvbdate =+ "${PN} libdvbapi libucsi"
+RDEPENDS:dvbtraffic =+ "${PN} libdvbapi"
+RDEPENDS:dvb-scan =+ "${PN} libdvbapi libdvbcfg libdvbsec"
+RDEPENDS:${PN} =+ "libdvbapi libdvbcfg libdvbsec libdvben50221 libucsi libesg"
+RDEPENDS:dvb-femon =+ "${PN} libdvbapi"
+RDEPENDS:dvbnet =+ "${PN} libdvbapi"
 
-FILES_dvb-evtest = "${bindir}/evtest"
-FILES_dvb-evtest-dbg = "${bindir}/.debug/evtest"
-RCONFLICTS_dvb-evtest = "evtest"
+FILES:${PN} = "${bindir} ${datadir}/dvb"
+FILES:${PN}-doc = ""
+FILES:${PN}-dev = "${includedir}"
 
-FILES_dvbapp-tests = "${bindir}/*test* "
-FILES_dvbapp-tests-dbg = "${bindir}/.debug/*test*"
+FILES:dvb-evtest = "${bindir}/evtest"
+FILES:dvb-evtest-dbg = "${bindir}/.debug/evtest"
+RCONFLICTS:dvb-evtest = "evtest"
 
-FILES_dvbdate = "${bindir}/dvbdate"
-FILES_dvbdate-dbg = "${bindir}/.debug/dvbdate"
-RDEPENDS_dvbdate = "dvb-apps"
+FILES:dvbapp-tests = "${bindir}/*test* "
+FILES:dvbapp-tests-dbg = "${bindir}/.debug/*test*"
 
-FILES_dvbtraffic = "${bindir}/dvbtraffic"
-FILES_dvbtraffic-dbg = "${bindir}/.debug/dvbtraffic"
-RDEPENDS_dvbtraffic = "dvb-apps"
+FILES:dvbdate = "${bindir}/dvbdate"
+FILES:dvbdate-dbg = "${bindir}/.debug/dvbdate"
 
-FILES_dvbnet = "${bindir}/dvbnet"
-FILES_dvbnet-dbg = "${bindir}/.debug/dvbnet"
-RDEPENDS_dvbnet = "dvb-apps"
+FILES:dvbtraffic = "${bindir}/dvbtraffic"
+FILES:dvbtraffic-dbg = "${bindir}/.debug/dvbtraffic"
 
-FILES_dvb-scan = "${bindir}/*scan "
-FILES_dvb-scan-dbg = "${bindir}/.debug/*scan"
-FILES_dvb-scan-data = "${docdir}/dvb-apps/scan"
-RDEPENDS_dvb-scan = "dvb-apps"
+FILES:dvbnet = "${bindir}/dvbnet"
+FILES:dvbnet-dbg = "${bindir}/.debug/dvbnet"
 
-FILES_dvb-azap = "${bindir}/azap"
-FILES_dvb-azap-dbg = "${bindir}/.debug/azap"
+FILES:dvb-scan = "${bindir}/*scan "
+FILES:dvb-scan-dbg = "${bindir}/.debug/*scan"
+FILES:dvb-scan-data = "${docdir}/dvb-apps/scan"
 
-FILES_dvb-czap = "${bindir}/czap"
-FILES_dvb-czap-dbg = "${bindir}/.debug/czap"
+FILES:dvb-azap = "${bindir}/azap"
+FILES:dvb-azap-dbg = "${bindir}/.debug/azap"
 
-FILES_dvb-szap = "${bindir}/szap"
-FILES_dvb-szap-dbg = "${bindir}/.debug/szap"
+FILES:dvb-czap = "${bindir}/czap"
+FILES:dvb-czap-dbg = "${bindir}/.debug/czap"
 
-FILES_dvb-tzap = "${bindir}/tzap"
-FILES_dvb-tzap-dbg = "${bindir}/.debug/tzap"
+FILES:dvb-szap = "${bindir}/szap"
+FILES:dvb-szap-dbg = "${bindir}/.debug/szap"
 
-FILES_dvb-femon = "${bindir}/femon"
-FILES_dvb-femon-dbg = "${bindir}/.debug/femon"
-RDEPENDS_dvb-femon = "dvb-apps"
+FILES:dvb-tzap = "${bindir}/tzap"
+FILES:dvb-tzap-dbg = "${bindir}/.debug/tzap"
 
-FILES_dvb-zap-data = "${docdir}/dvb-apps/szap"
+FILES:dvb-femon = "${bindir}/femon"
+FILES:dvb-femon-dbg = "${bindir}/.debug/femon"
 
+FILES:dvb-zap-data = "${docdir}/dvb-apps/szap"
