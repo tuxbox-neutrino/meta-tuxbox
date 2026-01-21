@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".4"
+PR:append = ".5"
 
 SRC_URI:append = " file://client.conf \
 		   file://default.pa \
@@ -66,8 +66,9 @@ do_install:append:systemd() {
 	install -m 0644 ${WORKDIR}/pulseaudio.socket ${D}${systemd_system_unitdir}
 }
 
-SYSTEMD_SERVICE:${PN}-server:append = " pulseaudio.socket"
+SYSTEMD_PACKAGES = "${PN}-server"
+SYSTEMD_SERVICE:${PN}-server = "pulseaudio.service pulseaudio.socket"
 
-FILES:${PN}-server:append = " ${systemd_system_unitdir}/* ${systemd_system_unitdir}/multi-user.target.wants/*"
+FILES:${PN}-server:append:systemd = " ${systemd_system_unitdir}/* ${systemd_system_unitdir}/multi-user.target.wants/*"
 FILES:${PN}-misc:append = " ${libexecdir}/pulse ${datadir}/GConf ${datadir}/pulseaudio"
 FILES:${PN}-dev:append = " ${datadir}/vala"
