@@ -37,7 +37,7 @@ index 7367f6f..0f31b93 100644
  #endif
      *ret = now + 600;
    }
- diff --git a/src/epggrab/module/psip.c b/src/epggrab/module/psip.c
+diff --git a/src/epggrab/module/psip.c b/src/epggrab/module/psip.c
 index 96b11ad..9c160aa 100644
 --- a/src/epggrab/module/psip.c
 +++ b/src/epggrab/module/psip.c
@@ -58,7 +58,7 @@ index 96b11ad..9c160aa 100644
      if (!ebc) goto next;
  
      save2 |= epg_broadcast_set_dvb_eid(ebc, eventid, &changes2);
- diff --git a/src/epggrab/otamux.c b/src/epggrab/otamux.c
+diff --git a/src/epggrab/otamux.c b/src/epggrab/otamux.c
 index 9f7f20b..1b4c7df 100644
 --- a/src/epggrab/otamux.c
 +++ b/src/epggrab/otamux.c
@@ -71,7 +71,7 @@ index 9f7f20b..1b4c7df 100644
    gtimer_arm_absn(&epggrab_ota_start_timer, epggrab_ota_start_cb, NULL, next);
    dbus_emit_signal_s64("/epggrab/ota", "next", next);
  }
- diff --git a/src/parsers/parser_teletext.c b/src/parsers/parser_teletext.c
+diff --git a/src/parsers/parser_teletext.c b/src/parsers/parser_teletext.c
 index 1d7a8b2..db1f0c1 100644
 --- a/src/parsers/parser_teletext.c
 +++ b/src/parsers/parser_teletext.c
@@ -84,7 +84,7 @@ index 1d7a8b2..db1f0c1 100644
    
    if(v[0] < v[1] && v[0] < v[2])
      return r[0];
- diff --git a/src/tvheadend.h b/src/tvheadend.h
+diff --git a/src/tvheadend.h b/src/tvheadend.h
 index 1c2b4d5..d7b3f4e 100644
 --- a/src/tvheadend.h
 +++ b/src/tvheadend.h
@@ -101,7 +101,7 @@ index 1c2b4d5..d7b3f4e 100644
  
  /* transcoding */
  #define TVH_NAME_LEN 32
- diff --git a/src/webui/webui.c b/src/webui/webui.c
+diff --git a/src/webui/webui.c b/src/webui/webui.c
 index d7a8a6a..0b9e34d 100644
 --- a/src/webui/webui.c
 +++ b/src/webui/webui.c
@@ -129,7 +129,7 @@ index d7a8a6a..0b9e34d 100644
      uuid = idnode_uuid_as_str(&de->de_id, ubuf);
      htsbuf_qprintf(hq, "#EXT-X-STREAM-INF:PROGRAM-ID=%s,BANDWIDTH=%d\n", uuid, bandwidth);
      htsbuf_qprintf(hq, "#EXT-X-PROGRAM-DATE-TIME:%s\n", buf);
- diff --git a/src/dvr/dvr_rec.c b/src/dvr/dvr_rec.c
+diff --git a/src/dvr/dvr_rec.c b/src/dvr/dvr_rec.c
 index 4f2b2aa..b93fa2f 100644
 --- a/src/dvr/dvr_rec.c
 +++ b/src/dvr/dvr_rec.c
@@ -147,7 +147,7 @@ index 4f2b2aa..b93fa2f 100644
 +  snprintf(buf, sizeof(buf), "%"PRItime_t, (intmax_t)dvr_entry_get_stop_time((dvr_entry_t *)aux));
    return dvr_do_prefix(id, fmt, buf, tmp, tmplen);
  }
- diff --git a/src/epggrab/module.c b/src/epggrab/module.c
+diff --git a/src/epggrab/module.c b/src/epggrab/module.c
 index c2d2a0e..4e4c5d1 100644
 --- a/src/epggrab/module.c
 +++ b/src/epggrab/module.c
@@ -160,7 +160,7 @@ index c2d2a0e..4e4c5d1 100644
      epggrab_module_parse(mod, data);
  
    /* Failed */
- diff --git a/src/epggrab/module/opentv.c b/src/epggrab/module/opentv.c
+diff --git a/src/epggrab/module/opentv.c b/src/epggrab/module/opentv.c
 index 4ce5d30..3c92c35 100644
 --- a/src/epggrab/module/opentv.c
 +++ b/src/epggrab/module/opentv.c
@@ -175,7 +175,7 @@ index 4ce5d30..3c92c35 100644
        save |= epg_broadcast_set_dvb_eid(ebc, ev.eid, &changes);
      } else {
        ebc = epg_broadcast_find_by_eid(ch, ev.eid);
- diff --git a/src/webui/simpleui.c b/src/webui/simpleui.c
+diff --git a/src/webui/simpleui.c b/src/webui/simpleui.c
 index 4c4632f..f8519f6 100644
 --- a/src/webui/simpleui.c
 +++ b/src/webui/simpleui.c
