@@ -1,7 +1,7 @@
 SUMMARY = "DOSBox is a DOS-emulator that uses the SDL2-library"
 HOMEPAGE = "http://www.dosbox.com/" 
 
-LICENSE = "GPLv2+"
+LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f" 
 
 DEPENDS = "libsdl2 libsdl2-net libpng virtual/libgles2 fluidsynth"
@@ -18,7 +18,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 PV = "0.74-ES"
-PR = "r2"
+PR = "r3"
 
 CXXFLAGS += "-Wall -Wextra -Wshadow -Wno-psabi -g -O2 -D_REENTRANT -I${STAGING_INCDIR}/SDL2 -lSDL2"
 CXXFLAGS:append = " -std=gnu++14"
