@@ -1,9 +1,11 @@
-From c3ef34c0ff68e926834e3d6a6dd20fb52f16b80b Mon Sep 17 00:00:00 2001
+From 4a4c61852e2608668c80636e037024bb9662dd67 Mon Sep 17 00:00:00 2001
 From: Markus Volk <f_l_k@t-online.de>
 Date: Wed, 16 Dec 2020 18:47:51 +0100
-Subject: [PATCH] sdlmain.cpp: adjust hardcoded path
+Subject: [PATCH 2/3] sdlmain.cpp: adjust hardcoded path
 
 Signed-off-by: Markus Volk <f_l_k@t-online.de>
+
+%% original patch: 0001-sdlmain.cpp-adjust-hardcoded-path.patch
 ---
  src/gui/sdlmain.cpp | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
@@ -40,5 +42,5 @@ index f4eeda0..b8bc18f 100644
  	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_EVENTS) < 0 )
  		E_Exit("Can't init SDL %s",SDL_GetError());
 -- 
-2.28.0
+2.39.5
 

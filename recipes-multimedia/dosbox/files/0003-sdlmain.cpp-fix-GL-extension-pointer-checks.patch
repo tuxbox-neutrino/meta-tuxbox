@@ -1,0 +1,28 @@
+From ac14e7eb15529533345ac1aae0ce7f2138ccf57e Mon Sep 17 00:00:00 2001
+From: Thilo Graf <dbt@novatux.de>
+Date: Sun, 25 Jan 2026 21:38:18 +0100
+Subject: [PATCH 3/3] sdlmain.cpp: fix GL extension pointer checks
+
+Signed-off-by: Thilo Graf <dbt@novatux.de>
+---
+ src/gui/sdlmain.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gui/sdlmain.cpp b/src/gui/sdlmain.cpp
+index b8bc18f..37ae016 100644
+--- a/src/gui/sdlmain.cpp
++++ b/src/gui/sdlmain.cpp
+@@ -2270,8 +2270,8 @@ static void GUI_StartUp(Section * sec) {
+ 	const char * gl_ext = (const char *)glGetString (GL_EXTENSIONS);
+ 	if(gl_ext && *gl_ext)
+ 	{
+-		sdl.opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") > 0);
+-		sdl.opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") > 0);
++		sdl.opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") != NULL);
++		sdl.opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") != NULL);
+     }
+ 	else
+ 	{
+-- 
+2.39.5
+

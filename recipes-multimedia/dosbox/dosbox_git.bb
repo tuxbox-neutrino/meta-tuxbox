@@ -9,13 +9,16 @@ DEPENDS = "libsdl2 libsdl2-net libpng virtual/libgles2 fluidsynth"
 inherit autotools pkgconfig
 
 SRC_URI = "git://github.com/aqualung99/dosbox-0.74-ES.git;protocol=https;branch=master \
-	   file://0001-use-pkgconfig-to-find-sdl2.patch \
-	   file://0001-sdlmain.cpp-adjust-hardcoded-path.patch \
+	   file://0001-a.patch \
+	   file://0002-sdlmain.cpp-adjust-hardcoded-path.patch \
+	   file://0003-sdlmain.cpp-fix-GL-extension-pointer-checks.patch \
 "
 
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 PV = "0.74-ES"
+PR = "r2"
 
 CXXFLAGS += "-Wall -Wextra -Wshadow -Wno-psabi -g -O2 -D_REENTRANT -I${STAGING_INCDIR}/SDL2 -lSDL2"
+CXXFLAGS:append = " -std=gnu++14"
