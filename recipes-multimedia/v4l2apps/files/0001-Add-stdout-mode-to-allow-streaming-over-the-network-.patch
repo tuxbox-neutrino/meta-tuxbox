@@ -1,0 +1,123 @@
+--- a/yavta.c
++++ b/yavta.c
+@@ -92,6 +92,7 @@
+ static bool pause_no_term;
+ static bool pause_term_configured;
+ static char pause_filename[23];
++static int stdout_fd = -1;
+ 
+ static void pause_signal_handler(int signal __attribute__((__unused__)))
+ {
+@@ -2052,29 +2053,42 @@
+ 	char *filename;
+ 	const char *p;
+ 	bool append;
++	bool use_stdout = false;
+ 	int ret = 0;
+ 	int fd;
+ 
+-	size = strlen(pattern);
+-	filename = malloc(size + 12);
+-	if (filename == NULL)
++	if (pattern == NULL)
+ 		return;
+ 
+-	p = strchr(pattern, '#');
+-	if (p != NULL) {
+-		sprintf(filename, "%.*s%06u%s", (int)(p - pattern), pattern,
+-			sequence, p + 1);
+-		append = false;
++	if (!strcmp(pattern, "-")) {
++		if (stdout_fd < 0)
++			return;
++		fd = stdout_fd;
++		use_stdout = true;
+ 	} else {
+-		strcpy(filename, pattern);
+-		append = true;
+-	}
++		size = strlen(pattern);
++		filename = malloc(size + 12);
++		if (filename == NULL)
++			return;
+ 
+-	fd = open(filename, O_CREAT | O_WRONLY | (append ? O_APPEND : O_TRUNC),
+-		  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+-	free(filename);
+-	if (fd == -1)
+-		return;
++		p = strchr(pattern, '#');
++		if (p != NULL) {
++			sprintf(filename, "%.*s%06u%s", (int)(p - pattern),
++				pattern, sequence, p + 1);
++			append = false;
++		} else {
++			strcpy(filename, pattern);
++			append = true;
++		}
++
++		fd = open(filename,
++			  O_CREAT | O_WRONLY | (append ? O_APPEND : O_TRUNC),
++			  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH |
++			  S_IWOTH);
++		free(filename);
++		if (fd == -1)
++			return;
++	}
+ 
+ 	for (i = 0; i < dev->num_planes; i++) {
+ 		void *data = dev->buffers[buf->index].mem[i];
+@@ -2100,7 +2114,8 @@
+ 			printf("write error: only %d bytes written instead of %u\n",
+ 			       ret, length);
+ 	}
+-	close(fd);
++	if (!use_stdout)
++		close(fd);
+ }
+ 
+ unsigned int video_buffer_bytes_used(struct device *dev, struct v4l2_buffer *buf)
+@@ -2272,6 +2287,7 @@
+ 	printf("\tFor video capture devices, the first '#' character in the file name is\n");
+ 	printf("\texpanded to the frame sequence number. The default file name is\n");
+ 	printf("\t'frame-#.bin'.\n");
++	printf("\tUse -F - to write frame data to stdout.\n");
+ 	printf("-h, --help			Show this help screen\n");
+ 	printf("-i, --input input		Select the video input\n");
+ 	printf("-I, --fill-frames		Fill frames with check pattern before queuing them\n");
+@@ -2649,6 +2665,30 @@
+ 
+ 	dev.memtype = memtype;
+ 
++	if (filename && !strcmp(filename, "-")) {
++		if (video_is_output(&dev)) {
++			fprintf(stderr,
++				"Stdout mode is only supported for capture devices.\n");
++			video_close(&dev);
++			return 1;
++		}
++
++		stdout_fd = dup(STDOUT_FILENO);
++		if (stdout_fd < 0) {
++			fprintf(stderr, "Unable to dup stdout: %s (%d)\n",
++				strerror(errno), errno);
++			video_close(&dev);
++			return 1;
++		}
++
++		if (dup2(STDERR_FILENO, STDOUT_FILENO) < 0) {
++			fprintf(stderr, "Unable to redirect stdout: %s (%d)\n",
++				strerror(errno), errno);
++			video_close(&dev);
++			return 1;
++		}
++	}
++
+ 	if (do_log_status)
+ 		video_log_status(&dev);
+ 
+@@ -2753,4 +2793,3 @@
+ 	video_close(&dev);
+ 	return 0;
+ }
+-
