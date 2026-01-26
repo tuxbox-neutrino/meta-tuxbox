@@ -1,8 +1,8 @@
-require kodi19-src.inc
+require ${@'kodi20-src.inc' if d.getVar('PV', '').startswith('20.') else 'kodi19-src.inc'}
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".3"
+PR:append = ".6"
 
 SRC_URI:append = " file://0002-kodi-spdlog-no-external-fmt.patch"
 
@@ -24,6 +24,8 @@ python do_patch:append() {
     sdir = d.getVar("S")
     cores = os.path.join(sdir, "cmake/treedata/common/cores.txt")
     playercore = os.path.join(sdir, "system/playercorefactory.xml")
+    config_h = os.path.join(sdir, "xbmc/cores/playercorefactory/PlayerCoreConfig.h")
+    factory_cpp = os.path.join(sdir, "xbmc/cores/playercorefactory/PlayerCoreFactory.cpp")
 
     def file_contains(path, token):
         try:
@@ -32,8 +34,8 @@ python do_patch:append() {
         except OSError:
             return False
 
-    if file_contains(cores, "Enigma2Player") or file_contains(playercore, "E2Player"):
+    if (file_contains(cores, "Enigma2Player") or file_contains(playercore, "E2Player") or
+            file_contains(config_h, "Enigma2Player") or file_contains(factory_cpp, "Enigma2Player")):
         bb.note("kodi: dropping Enigma2Player core for non-enigma2 builds")
         with open(patch, "rb") as handle:
-            subprocess.check_call(["patch", "-p1", "-d", sdir], stdin=handle)
-}
+            subprocess.check_call(["patch", "-p1", "-N", "-d", sdir], stdin=handle)

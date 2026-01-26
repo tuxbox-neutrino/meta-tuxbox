@@ -18,7 +18,7 @@ LIC_FILES_CHKSUM = "file://nss/COPYING;md5=3b1e88e1b9c0b5a4b2881d46cce06a18 \
                     file://nss/lib/freebl/mpi/doc/LICENSE-MPL;md5=5d425c8f3157dbf212db2ec53d9e5132"
 
 VERSION_DIR = "${@d.getVar('BP').upper().replace('-', '_').replace('.', '_') + '_RTM'}"
-PR = "r1"
+PR = "r3"
 
 SRC_URI = "http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/${VERSION_DIR}/src/${BP}.tar.gz \
            file://nss.pc.in \
@@ -248,25 +248,25 @@ pkg_postinst_${PN} () {
 }
 
 PACKAGES =+ "${PN}-smime"
-FILES_${PN}-smime = "\
+FILES:${PN}-smime = "\
     ${bindir}/smime \
 "
 
-FILES_${PN} = "\
-    ${sysconfdir} \
-    ${bindir} \
+FILES:${PN} += "\
     ${libdir}/lib*.chk \
     ${libdir}/lib*.so \
+    ${libdir}/lib*.so.* \
     "
 
-FILES_${PN}-dev = "\
+FILES:${PN}-dev += "\
     ${libdir}/nss \
     ${libdir}/pkgconfig/* \
     ${includedir}/* \
     "
 
-RDEPENDS_${PN}-smime = "perl"
+RDEPENDS:${PN}-smime = "perl"
 
+SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
 BBCLASSEXTEND = "native nativesdk"

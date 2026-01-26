@@ -1,14 +1,16 @@
 From 3b6bc6f7c79c6be1c0c1fb8a7b4b827e42a37b7a Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: developers <developers@tuxbox-neutrino.org>
 Date: Tue, 11 Feb 2025 10:40:00 +0000
 Subject: [PATCH] kodi: drop Enigma2Player when enigma2 is disabled
 
 Upstream-Status: Inappropriate [tuxbox]
-Signed-off-by: Codex <codex@openai.com>
+Signed-off-by: developers <developers@tuxbox-neutrino.org>
 ---
- cmake/treedata/common/cores.txt | 1 -
- system/playercorefactory.xml   | 10 +---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ cmake/treedata/common/cores.txt               |  1 -
+ system/playercorefactory.xml                 | 10 +---------
+ xbmc/cores/playercorefactory/PlayerCoreConfig.h  |  5 -----
+ xbmc/cores/playercorefactory/PlayerCoreFactory.cpp |  9 ---------
+ 4 files changed, 1 insertion(+), 24 deletions(-)
 
 diff --git a/cmake/treedata/common/cores.txt b/cmake/treedata/common/cores.txt
 index 5e5c6cbf80..cbde630e7d 100644
@@ -43,3 +45,55 @@ index 8e25021..c06c3f2 100644
      <rule name="mms/udp" protocols="mms|mmsh|udp" player="VideoPlayer" />
      <rule name="lastfm/shout" protocols="lastfm|shout" player="PAPlayer" />
      <rule name="rtmp" protocols="rtmp" player="videodefaultplayer" />
+diff --git a/xbmc/cores/playercorefactory/PlayerCoreConfig.h b/xbmc/cores/playercorefactory/PlayerCoreConfig.h
+index 8d9a4763e4..0d2f1d8d9b 100644
+--- a/xbmc/cores/playercorefactory/PlayerCoreConfig.h
++++ b/xbmc/cores/playercorefactory/PlayerCoreConfig.h
+@@
+ #include "cores/ExternalPlayer/ExternalPlayer.h"
+ #include "cores/IPlayer.h"
+ #include "cores/RetroPlayer/RetroPlayer.h"
+ #include "cores/VideoPlayer/VideoPlayer.h"
+ #include "cores/paplayer/PAPlayer.h"
+-#include "cores/Enigma2Player/Enigma2Player.h"
+ #ifdef HAS_UPNP
+ #include "network/upnp/UPnPPlayer.h"
+ #endif
+@@
+-    else if (m_type.compare("enigma2") == 0)
+-    {
+-      player = std::make_shared<CEnigma2Player>(callback);
+-    }
+-
+ #if defined(HAS_UPNP)
+     else if (m_type.compare("remote") == 0)
+     {
+diff --git a/xbmc/cores/playercorefactory/PlayerCoreFactory.cpp b/xbmc/cores/playercorefactory/PlayerCoreFactory.cpp
+index 6aa3dd0a53..9a45a0af5d 100644
+--- a/xbmc/cores/playercorefactory/PlayerCoreFactory.cpp
++++ b/xbmc/cores/playercorefactory/PlayerCoreFactory.cpp
+@@
+ #include "URL.h"
+ #include "cores/IPlayerCallback.h"
+ #include "cores/VideoPlayer/Interface/InputStreamConstants.h"
+ #include "cores/paplayer/PAPlayer.h"
+-#include "cores/Enigma2Player/Enigma2Player.h"
+ #include "dialogs/GUIDialogContextMenu.h"
+ #include "guilib/LocalizeStrings.h"
+ #include "profiles/ProfileManager.h"
+@@
+-    auto Enigma2Player = std::make_unique<CPlayerCoreConfig>("Enigma2Player", "video", nullptr);
+-    Enigma2Player->m_bPlaysAudio = true;
+-    Enigma2Player->m_bPlaysVideo = true;
+-    m_vecPlayerConfigs.emplace_back(std::move(Enigma2Player));
+-
+     auto paplayer = std::make_unique<CPlayerCoreConfig>("PAPlayer", "music", nullptr);
+     paplayer->m_bPlaysAudio = true;
+     m_vecPlayerConfigs.emplace_back(std::move(paplayer));
+@@
+-      else if (type == "enigma2player")
+-        internaltype = "enigma2";
+-
+       int count = 0;
+       std::string playername = name;
+       while (GetPlayerIndex(playername) >= 0)
