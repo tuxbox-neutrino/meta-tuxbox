@@ -1,0 +1,29 @@
+From 59c9c6b9ef5e9e4f0b50f8d2c70f2c3ad5f52e6d Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Tue, 11 Feb 2025 12:20:00 +0000
+Subject: [PATCH] kodi: honor spdlog fmt mode from config
+
+Upstream-Status: Inappropriate [tuxbox]
+Signed-off-by: Codex <codex@openai.com>
+---
+ cmake/modules/FindSpdlog.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/modules/FindSpdlog.cmake b/cmake/modules/FindSpdlog.cmake
+index 7b6d5b0f53..2a5a57c2f1 100644
+--- a/cmake/modules/FindSpdlog.cmake
++++ b/cmake/modules/FindSpdlog.cmake
+@@ -82,10 +82,14 @@ if(SPDLOG_FOUND)
+   set(SPDLOG_LIBRARIES ${SPDLOG_LIBRARY})
+   set(SPDLOG_INCLUDE_DIRS ${SPDLOG_INCLUDE_DIR})
+-  set(SPDLOG_DEFINITIONS -DSPDLOG_FMT_EXTERNAL
+-                         -DSPDLOG_DEBUG_ON
++  set(SPDLOG_DEFINITIONS -DSPDLOG_DEBUG_ON
+                          -DSPDLOG_NO_ATOMIC_LEVELS
+                          -DSPDLOG_ENABLE_PATTERN_PADDING)
++  if(SPDLOG_FMT_EXTERNAL)
++    list(APPEND SPDLOG_DEFINITIONS -DSPDLOG_FMT_EXTERNAL)
++  endif()
+   if(WIN32)
+     list(APPEND SPDLOG_DEFINITIONS -DSPDLOG_WCHAR_FILENAMES
+                                    -DSPDLOG_WCHAR_TO_UTF8_SUPPORT)

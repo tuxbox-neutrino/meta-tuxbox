@@ -2,7 +2,9 @@ require kodi20-src.inc
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".2"
+PR:append = ".3"
+
+SRC_URI:append = " file://0002-kodi-spdlog-no-external-fmt.patch"
 
 # stb builds use GLES; avoid desktop OpenGL requirement.
 PACKAGECONFIG:remove = "opengl"
