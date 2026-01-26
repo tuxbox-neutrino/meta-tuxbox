@@ -2,7 +2,11 @@ require kodi19-src.inc
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".1"
+PR:append = ".2"
+
+# stb builds use GLES; avoid desktop OpenGL requirement.
+PACKAGECONFIG:remove = "opengl"
+PACKAGECONFIG:append = " openglesv2"
 
 # Keep Enigma2 external player optional (default off).
 SRC_URI:append = "${@ ' file://0001-kodi-drop-enigma2player-core.patch;apply=no' if (not bb.utils.contains('DISTRO_FEATURES', 'enigma2', True, False, d) and not bb.utils.contains_any('MACHINE_FEATURES', 'hisil-3798mv200 hisil-3798mv310 hisi hisil', True, False, d)) else '' }"
