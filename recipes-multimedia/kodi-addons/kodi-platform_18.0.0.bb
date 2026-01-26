@@ -3,12 +3,13 @@ HOMEPAGE = "http://libcec.pulse-eight.com/"
 
 PACKAGE_ARCH = "${MACHINE}"
 
-LICENSE = "GPLv2+"
+LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://src/util/XMLUtils.cpp;beginline=2;endline=18;md5=dae8e846500e70dd8ecee55f3f018c30"
 
 DEPENDS = "libtinyxml virtual/kodi"
 
 PV = "18.0.0"
+PR = "r1"
 
 SRCREV = "e8574b883ffa2131f2eeb96ff3724d60b21130f7"
 SRC_URI = "git://github.com/xbmc/kodi-platform.git;protocol=https;branch=master \
@@ -53,7 +54,7 @@ PACKAGES =+ "libkodiplatform"
 
 FILES_libkodiplatform = "${libdir}/lib*.so.*"
 
-FILES_${PN}-dev += "${libdir}/*platform"
+FILES:${PN}-dev += "${libdir}/*platform ${libdir}/kodiplatform ${libdir}/kodiplatform/*"
 
 do_qa_staging() {
 }
