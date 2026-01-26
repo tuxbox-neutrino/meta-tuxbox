@@ -4,6 +4,7 @@ LICENSE = "GPL-2.0 | MPL-2.0 | LGPL-2.1"
 LIC_FILES_CHKSUM = "file://configure.in;beginline=3;endline=6;md5=90c2fdee38e45d6302abcfe475c8b5c5 \
                     file://Makefile.in;beginline=4;endline=38;md5=beda1dbb98a515f557d3e58ef06bca99"
 SECTION = "libs/network"
+PR = "r1"
 
 SRC_URI = "http://ftp.mozilla.org/pub/nspr/releases/v${PV}/src/nspr-${PV}.tar.gz \
            file://remove-rpath-from-tests.patch \
@@ -31,7 +32,6 @@ CVE_PRODUCT = "netscape_portable_runtime"
 
 S = "${WORKDIR}/nspr-${PV}/nspr"
 
-RDEPENDS_${PN}-dev += "perl"
 TARGET_CC_ARCH += "${LDFLAGS}"
 
 TESTS = " \
@@ -154,6 +154,9 @@ inherit autotools multilib_script
 
 MULTILIB_SCRIPTS = "${PN}-dev:${bindir}/nspr-config"
 
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
+
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'ipv6', d)}"
 PACKAGECONFIG[ipv6] = "--enable-ipv6,--disable-ipv6,"
 
@@ -175,12 +178,6 @@ do_install:append() {
     -e 's:OEEXECPREFIX:${exec_prefix}:g' \
     ${D}${libdir}/pkgconfig/nspr.pc
 
-    mkdir -p ${D}${libdir}/nspr/tests
-    install -m 0755 ${S}/pr/tests/runtests.pl ${D}${libdir}/nspr/tests
-    install -m 0755 ${S}/pr/tests/runtests.sh ${D}${libdir}/nspr/tests
-    cd ${B}/pr/tests
-    install -m 0755 ${TESTS} ${D}${libdir}/nspr/tests
-
     # delete compile-et.pl and perr.properties from ${bindir} because these are
     # only used to generate prerr.c and prerr.h files from prerr.et at compile
     # time
@@ -188,7 +185,7 @@ do_install:append() {
 }
 
 FILES_${PN} = "${libdir}/lib*.so"
-FILES_${PN}-dev = "${bindir}/* ${libdir}/nspr/tests/* ${libdir}/pkgconfig \
+FILES_${PN}-dev = "${bindir}/nspr-config ${libdir}/pkgconfig \
                 ${includedir}/* ${datadir}/aclocal/* "
 
 BBCLASSEXTEND = "native nativesdk"

@@ -1,6 +1,7 @@
 # Make glibc-locale robust when the binary locale stash is absent
 # (ENABLE_BINARY_LOCALE_GENERATION=0). Ensure target dirs exist and
 # fall back to a stub SUPPORTED file instead of failing.
+PR:append = ".1"
 do_install() {
     install -d ${D}${libdir} ${D}${datadir}/locale
 
@@ -25,12 +26,16 @@ do_install() {
 
 # Skip binary-locale staging cleanly when the stash is absent to avoid tar errors
 do_prep_locale_tree() {
+    rm -rf ${WORKDIR}/locale-tree
+    mkdir -p ${WORKDIR}/locale-tree${base_bindir} \
+        ${WORKDIR}/locale-tree${base_libdir} \
+        ${WORKDIR}/locale-tree${datadir} \
+        ${WORKDIR}/locale-tree${localedir}
+
     if [ ! -d "${LOCALETREESRC}/usr/share" ]; then
         bbwarn "glibc-locale: skipping prep_locale_tree; ${LOCALETREESRC}/usr/share missing"
         return 0
     fi
 
-    rm -rf ${WORKDIR}/locale-tree
-    mkdir -p ${WORKDIR}/locale-tree
     tar -C ${LOCALETREESRC} -cf - usr/share | tar -C ${WORKDIR}/locale-tree -xf -
 }
