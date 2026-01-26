@@ -1,0 +1,45 @@
+From 3b6bc6f7c79c6be1c0c1fb8a7b4b827e42a37b7a Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Tue, 11 Feb 2025 10:40:00 +0000
+Subject: [PATCH] kodi: drop Enigma2Player when enigma2 is disabled
+
+Upstream-Status: Inappropriate [tuxbox]
+Signed-off-by: Codex <codex@openai.com>
+---
+ cmake/treedata/common/cores.txt | 1 -
+ system/playercorefactory.xml   | 10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/cmake/treedata/common/cores.txt b/cmake/treedata/common/cores.txt
+index 5e5c6cbf80..cbde630e7d 100644
+--- a/cmake/treedata/common/cores.txt
++++ b/cmake/treedata/common/cores.txt
+@@ -5,5 +5,4 @@ xbmc/cores/DllLoader/exports           cores/dll-loader/exports
+ xbmc/cores/DllLoader/exports/util      cores/dll-loader/exports/util
+ xbmc/cores/ExternalPlayer              cores/externalplayer
+-xbmc/cores/Enigma2Player               cores/enigma2player
+ xbmc/cores/paplayer                    cores/paplayer
+ xbmc/cores/playercorefactory           cores/playercorefactory
+diff --git a/system/playercorefactory.xml b/system/playercorefactory.xml
+index 8e25021..c06c3f2 100644
+--- a/system/playercorefactory.xml
++++ b/system/playercorefactory.xml
+@@ -8,17 +8,9 @@
+     <player name="VideoPlayer" /> placeholder for MPlayer
+     <player name="PAPlayer" audio="true" />
+     -->
+-    <player name="E2Player" type="Enigma2Player" audio="true" video="true">
+-      <filename>kodiext</filename>
+-      <args>-U "{1}" -S "{3}" -P "$PPID"</args>
+-      <filenamemeta>/tmp/kodiextin.json</filenamemeta>
+-      <hidexbmc>true</hidexbmc>
+-      <hideconsole>true</hideconsole>
+-      <warpcursor>none</warpcursor>
+-    </player>
+   </players>
+ 
+-  <rules action="prepend" name="system rules">
++  <rules name="system rules">
+     <rule name="mms/udp" protocols="mms|mmsh|udp" player="VideoPlayer" />
+     <rule name="lastfm/shout" protocols="lastfm|shout" player="PAPlayer" />
+     <rule name="rtmp" protocols="rtmp" player="videodefaultplayer" />
