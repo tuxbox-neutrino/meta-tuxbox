@@ -4,13 +4,13 @@ SRC_URI:append = " file://bootlogo.service"
 
 inherit systemd
 
-PR:append = ".1"
+PR:append = ".2"
 
 SYSTEMD_SERVICE:${PN} = "bootlogo.service"
 
-do_install:append() {
+do_install:append:systemd() {
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/bootlogo.service ${D}${systemd_unitdir}/system/
 }
 
-FILES:${PN} += "${systemd_unitdir}/system/bootlogo.service"
+FILES:${PN}:append:systemd = " ${systemd_unitdir}/system/bootlogo.service"
