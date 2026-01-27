@@ -11,6 +11,8 @@ CONFFILES_${PN} += " \
 	${sysconfdir}/timezone \
 	"
 
+PR:append = ".1"
+
 do_install:append () {
 	# rather create in postinst than package it...
 	rm ${D}${sysconfdir}/localtime
