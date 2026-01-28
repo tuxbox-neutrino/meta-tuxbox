@@ -33,6 +33,11 @@ IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-multimedia \
 "
 
+# Bootlogo payload for machines that use splash.bin during image packaging.
+IMAGE_INSTALL:append = " \
+    ${@bb.utils.contains('MACHINE_FEATURES', 'bootsplash', 'tuxbox-bootlogo', '', d)} \
+"
+
 # System tools
 IMAGE_INSTALL:append = " \
     bash \

@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r2"
+PR = "r7"
 
 # Conditional large image packages (excluded on small flash devices)
 # Placeholder for optional large-image extras (add real packagegroups later)
@@ -35,3 +35,19 @@ ROOTFS_PREPROCESS_COMMAND += " rootfs_preprocess_resolvconf;"
 
 # Avoid non-deterministic task signatures when IMAGE_NAME includes DATETIME.
 do_image_hdfastboot8gb[vardepsexclude] += " IMAGE_NAME"
+
+# Ensure splash.bin is deployed before emmcimg packaging runs.
+do_image_emmcimg[depends] += "tuxbox-bootlogo:do_deploy"
+
+IMAGE_CMD:emmcimg:prepend () {
+    # Provide a legacy rootfs.ext4 alias for emmcimg images.
+    legacy_ext4="${IMGDEPLOYDIR}/${IMAGE_NAME}.rootfs.ext4"
+    if [ ! -e "${legacy_ext4}" ]; then
+        if [ -f "${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.ext4" ]; then
+            ln -sf "${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.ext4" "${legacy_ext4}"
+        elif [ -f "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.ext4" ]; then
+            ln -sf "${IMAGE_LINK_NAME}.ext4" "${legacy_ext4}"
+        fi
+    fi
+
+}
