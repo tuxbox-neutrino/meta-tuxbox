@@ -5,11 +5,10 @@ SECTION = "libs"
 LICENSE = "LicenseRef-OSGPL-0.0"
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=2c38926f611bfbd5a3be0f817c8d2dad \
 "
-NO_GENERIC_LICENSE[LicenseRef-OSGPL-0.0] = "LICENSE.txt"
 DEPENDS = ""
 
 SRCREV = "f8444d7002fde691198c68e66888cf589a233628"
-PR = "r2"
+PR = "r3"
 
 SRC_URI = "git://github.com/neutrino-images/ni-openthreads;protocol=https;branch=master \
 "
