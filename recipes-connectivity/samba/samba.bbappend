@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".3"
+PR:append = ".4"
 
 # Package private Samba libraries to avoid QA "installed-vs-shipped"
 PACKAGES += "${PN}-private-libs"
