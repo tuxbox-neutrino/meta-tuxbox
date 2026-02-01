@@ -1,0 +1,30 @@
+From e0b640baff0dcb0f9e851b011e4724b049ece1ef Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Mon, 14 Sep 2020 23:37:59 +0200
+Subject: [PATCH] luajit: add lua52 compat typedef
+
+---
+ src/lua.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/lua.h b/src/lua.h
+index 6d1634d1..ffb6152a 100644
+--- a/src/lua.h
++++ b/src/lua.h
+@@ -11,7 +11,7 @@
+ 
+ #include <stdarg.h>
+ #include <stddef.h>
+-
++#include <stdint.h>
+ 
+ #include "luaconf.h"
+ 
+@@ -60,6 +60,7 @@ typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
+ 
+ typedef int (*lua_Writer) (lua_State *L, const void* p, size_t sz, void* ud);
+ 
++typedef uint32_t lua_Unsigned;
+ 
+ /*
+ ** prototype for memory-allocation functions
