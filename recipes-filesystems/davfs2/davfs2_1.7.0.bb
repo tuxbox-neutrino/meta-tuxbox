@@ -2,11 +2,11 @@ DESCRIPTION = "A Linux file system driver that allows you to mount a WebDAV serv
 SECTION = "network"
 PRIORITY = "optional"
 HOMEPAGE = "http://savannah.nongnu.org/projects/davfs2"
-LICENSE = "GPL-3.0"
+LICENSE = "GPL-3.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8f0e2cd40e05189ec81232da84bd6e1a"
 
 RM_WORK_EXCLUDE += "${PN}"
-PR = "r1"
+PR = "r2"
 
 DEPENDS = "gettext-native neon"
 RDEPENDS:${PN} += "bash"
@@ -24,7 +24,9 @@ SRC_URI = "http://download.savannah.nongnu.org/releases/davfs2/${BP}.tar.gz \
 
 SRC_URI[sha256sum] = "251db75a27380cca1330b1b971700c5e5dcc0c90e5a47622285f0140edfe3a2f"
 
-inherit autotools pkgconfig useradd
+inherit autotools pkgconfig useradd systemd
+
+SYSTEMD_SERVICE:${PN} = "davfs2.service"
 
 USERADD_PACKAGES = "davfs2"
 USERADD_PARAM:davfs2 = "--system --home /var/run/mount.davfs \
@@ -48,18 +50,18 @@ do_install:append () {
         install -m 755 ${WORKDIR}/umount.all.davfs ${D}${sbindir}/umount.all.davfs
         install -m 644 ${WORKDIR}/davfs2.mount.list ${D}${sysconfdir}/davfs2/davfs2.mount.list
 
-        # system init
-        install -d ${D}${sysconfdir}/systemd/system
-        install -m 644 ${WORKDIR}/davfs2.service ${D}${sysconfdir}/systemd/system/davfs2.service
-        local sbin_path=${sbindir}
-	sed -i "s|@SBINPATH@|$sbin_path|" ${D}${sysconfdir}/systemd/system/davfs2.service
-
         rm -rf ${D}/usr/share/davfs2
 
 	# modify configs
 	sed -i 's/# backup_dir      lost+found/backup_dir      backup/' ${D}${sysconfdir}/davfs2/davfs2.conf
 	sed -i 's/# use_compression 0/use_compression 1/' ${D}${sysconfdir}/davfs2/davfs2.conf
 	sed -i 's/# use_locks       1/use_locks       0/' ${D}${sysconfdir}/davfs2/davfs2.conf
+}
+
+do_install:append:systemd () {
+        install -d ${D}${systemd_system_unitdir}
+        install -m 644 ${WORKDIR}/davfs2.service ${D}${systemd_system_unitdir}/davfs2.service
+        sed -i "s|@SBINPATH@|${sbindir}|" ${D}${systemd_system_unitdir}/davfs2.service
 }
 
 
