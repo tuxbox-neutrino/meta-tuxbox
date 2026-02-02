@@ -1,0 +1,27 @@
+From 6f6f2e32bce2a6e9cb0b0b8b2d8a1e3ceebfc0a1 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Mon, 2 Feb 2026 12:30:00 +0100
+Subject: [PATCH] make_hash: include string.h for string functions
+
+Fix build failures with newer compilers by including string.h for
+strlen/strncmp/strdup/strcmp/strchr/memmove.
+
+Signed-off-by: developers <developers@tuxbox-neutrino.org>
+---
+ tools/make_hash.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tools/make_hash.c b/tools/make_hash.c
+index 3ad8c53..cecc6c4 100644
+--- a/tools/make_hash.c
++++ b/tools/make_hash.c
+@@ -38,6 +38,7 @@
+ 
+ #include <unistd.h>
+ #include <ctype.h>
++#include <string.h>
+ 
+ /* PARR {{{ */
+ #ifdef __GNUC__
+-- 
+2.39.2
