@@ -103,3 +103,12 @@ IMAGE_FSTYPES += "tar.bz2"
 
 # Optionally create ext4 image for eMMC devices
 IMAGE_FSTYPES += "${@bb.utils.contains('MACHINE_FEATURES', 'emmc', 'ext4', '', d)}"
+
+do_package_index[nostamp] = "1"
+do_package_index[depends] += "${PACKAGEINDEXDEPS}"
+
+python do_package_index() {
+    from oe.rootfs import generate_index_files
+    generate_index_files(d)
+}
+addtask do_package_index after do_rootfs before do_image_complete
