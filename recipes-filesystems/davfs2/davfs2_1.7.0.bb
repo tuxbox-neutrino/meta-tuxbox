@@ -6,7 +6,7 @@ LICENSE = "GPL-3.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8f0e2cd40e05189ec81232da84bd6e1a"
 
 RM_WORK_EXCLUDE += "${PN}"
-PR = "r2"
+PR = "r3"
 
 DEPENDS = "gettext-native neon"
 RDEPENDS:${PN} += "bash"
@@ -49,6 +49,9 @@ do_install:append () {
         install -m 755 ${WORKDIR}/mount.all.davfs ${D}${sbindir}/mount.all.davfs
         install -m 755 ${WORKDIR}/umount.all.davfs ${D}${sbindir}/umount.all.davfs
         install -m 644 ${WORKDIR}/davfs2.mount.list ${D}${sysconfdir}/davfs2/davfs2.mount.list
+        install -d ${D}${systemd_system_unitdir}
+        install -m 644 ${WORKDIR}/davfs2.service ${D}${systemd_system_unitdir}/davfs2.service
+        sed -i "s|@SBINPATH@|${sbindir}|" ${D}${systemd_system_unitdir}/davfs2.service
 
         rm -rf ${D}/usr/share/davfs2
 
@@ -58,10 +61,8 @@ do_install:append () {
 	sed -i 's/# use_locks       1/use_locks       0/' ${D}${sysconfdir}/davfs2/davfs2.conf
 }
 
-do_install:append:systemd () {
-        install -d ${D}${systemd_system_unitdir}
-        install -m 644 ${WORKDIR}/davfs2.service ${D}${systemd_system_unitdir}/davfs2.service
-        sed -i "s|@SBINPATH@|${sbindir}|" ${D}${systemd_system_unitdir}/davfs2.service
+do_install:append:sysvinit () {
+        rm -f ${D}${systemd_system_unitdir}/davfs2.service
 }
 
 
