@@ -2,7 +2,7 @@ require ${@'kodi20-src.inc' if d.getVar('PV', '').startswith('20.') else 'kodi19
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".6"
+PR:append = ".7"
 
 SRC_URI:append = " file://0002-kodi-spdlog-no-external-fmt.patch"
 
