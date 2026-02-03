@@ -48,6 +48,7 @@ IMAGE_INSTALL:append = " \
     wget \
     openssh \
     opkg \
+    tuxbox-feed-config \
     less \
     findutils \
     grep \
