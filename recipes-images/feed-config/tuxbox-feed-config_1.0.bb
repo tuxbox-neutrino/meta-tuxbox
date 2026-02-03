@@ -2,7 +2,7 @@ DESCRIPTION = "Tuxbox image feed configuration"
 # derived from poky-feed-config
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
-PR = "r3"
+PR = "r4"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -76,6 +76,6 @@ do_install () {
 	install -m 0644  ${S}/${sysconfdir}/opkg/* ${D}${sysconfdir}/opkg/
 }
 
-FILES_${PN} = "${sysconfdir}/opkg/"
+FILES:${PN} = "${sysconfdir}/opkg/"
 
-CONFFILES_${PN} += "${sysconfdir}/opkg/base-feeds.conf"
+CONFFILES:${PN} += "${sysconfdir}/opkg/base-feeds.conf"
