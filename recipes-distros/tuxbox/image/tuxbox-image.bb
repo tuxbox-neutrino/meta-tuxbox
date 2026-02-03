@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r7"
+PR = "r8"
 
 # Conditional large image packages (excluded on small flash devices)
 # Placeholder for optional large-image extras (add real packagegroups later)
@@ -18,7 +18,7 @@ BIG_IMAGE_PACKAGES = ""
 IMAGE_INSTALL += "${@bb.utils.contains('IMAGESIZE', 'small', '', '${BIG_IMAGE_PACKAGES}', d)}"
 
 # Image variant
-IMAGE_BASENAME = "tuxbox-image"
+IMAGE_BASENAME = "${DISTRO}-image"
 
 # Disable recommends to avoid pulling optional python/charset extras during rootfs
 NO_RECOMMENDATIONS = "1"

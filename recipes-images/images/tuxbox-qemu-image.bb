@@ -8,10 +8,10 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r3"
+PR = "r4"
 
 # Image variant
-IMAGE_BASENAME = "tuxbox-qemu-image"
+IMAGE_BASENAME = "${DISTRO}-qemu-image"
 
 # Allow root SSH login with empty password for automated smoke tests.
 IMAGE_FEATURES:append = " allow-root-login"
