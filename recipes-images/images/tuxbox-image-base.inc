@@ -338,7 +338,7 @@ EXTRA_IMAGEDEPENDS = " \
 "
 
 
-EXTRAOPKGCONFIG = "neutrino-feed-config"
+EXTRAOPKGCONFIG = "tuxbox-feed-config"
 
 inherit image
 
