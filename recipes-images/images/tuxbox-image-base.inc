@@ -282,6 +282,7 @@ IMAGE_INSTALL += " \
 	openssh \
 	openssl \
 	opkg \
+	tuxbox-feed-config \
 	pv \
 	rpcbind \
 	rsync \
