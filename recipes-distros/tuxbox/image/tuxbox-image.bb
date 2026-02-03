@@ -8,7 +8,10 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r8"
+PR = "r9"
+
+# Legacy image targets (aliases for compatibility)
+PROVIDES += "neutrino-image noneutrino-image"
 
 # Conditional large image packages (excluded on small flash devices)
 # Placeholder for optional large-image extras (add real packagegroups later)
