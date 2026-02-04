@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-PR:append = ".2"
+PR:append = ".3"
 
 SRC_URI += " \
 		file://backup@.service \
@@ -73,8 +73,6 @@ do_install:append () {
 		install -m 0644 ${WORKDIR}/gbox.service ${D}${systemd_unitdir}/system
 		install -m 0644 ${WORKDIR}/cccam.service ${D}${systemd_unitdir}/system
 	fi
-	rm -rf ${D}${sysconfdir}/profile
-
 # 	Hack to remove dirty files from base-files package.
 # 	Allthough it's possible to remove some files from SRC_URI with help of local.conf with such line:
 #	SRC_URI_remove:pn-base-files = " file1 file2 ... "
