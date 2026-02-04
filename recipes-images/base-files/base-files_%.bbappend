@@ -2,11 +2,14 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
+PR:append = ".1"
+
 SRC_URI += " \
 		file://backup@.service \
 		file://banner.template \
 		file://cccam.service \
 		file://firstboot.service \
+		file://firstboot.sh \
 		file://flash@.service \
 		file://fstab \
 		file://fstrim.service \
@@ -17,6 +20,7 @@ SRC_URI += " \
 		file://local_cam.sh \
 		file://locale.conf \
 		file://local.service \
+		file://local.sh \
 		file://mount@.service \
 		file://net-umount.service \
 		file://net-umount.sh \
@@ -43,10 +47,12 @@ do_install:append () {
 	install -d ${D}${localstatedir}/update ${D}${systemd_unitdir}/system/multi-user.target.wants ${D}${bindir} ${D}${sysconfdir}/systemd/system/multi-user.target.wants
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
 		install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}/modules-load.d
+		install -d ${D}${sysconfdir}/firstboot.d ${D}${sysconfdir}/local.d
 		install -m 0755 ${WORKDIR}/local_cam.sh ${D}${bindir}
 		install -m 0644 ${WORKDIR}/locale.conf  ${D}${sysconfdir}
 		install -m 0644 ${WORKDIR}/firstboot.service  ${D}${sysconfdir}/systemd/system
 		ln -sf /etc/systemd/system/firstboot.service  ${D}${sysconfdir}/systemd/system/multi-user.target.wants
+		install -m 0755 ${WORKDIR}/firstboot.sh ${D}${sbindir}
 		install -m 0644 ${WORKDIR}/fstrim.service  ${D}${systemd_unitdir}/system
 		install -m 0644 ${WORKDIR}/fstrim.timer  ${D}${systemd_unitdir}/system
 		ln -sf /lib/systemd/system/fstrim.timer  ${D}${systemd_unitdir}/system/multi-user.target.wants
@@ -59,6 +65,7 @@ do_install:append () {
 		install -m 0644 ${WORKDIR}/backup@.service  ${D}${systemd_unitdir}/system
 		install -m 0644 ${WORKDIR}/local.service  ${D}${systemd_unitdir}/system
 		ln -sf /lib/systemd/system/local.service  ${D}${systemd_unitdir}/system/multi-user.target.wants
+		install -m 0755 ${WORKDIR}/local.sh ${D}${bindir}
 		install -m 0644 ${WORKDIR}/vconsole.conf  ${D}${sysconfdir}
 		install -m 0755 ${WORKDIR}/getty-toggle  ${D}${bindir}
 		install -m 0644 ${WORKDIR}/gbox.service ${D}${systemd_unitdir}/system

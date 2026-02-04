@@ -3,7 +3,12 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".4"
+PR:append = ".5"
+
+SRC_URI += " \
+    file://nmb.service.d/override.conf \
+    file://smb.service.d/override.conf \
+"
 
 # Package private Samba libraries to avoid QA "installed-vs-shipped"
 PACKAGES += "${PN}-private-libs"
@@ -73,4 +78,15 @@ python __anonymous() {
     marker = "#!/bin/sh"
     if marker in val:
         d.setVar(key, val.split(marker, 1)[0].rstrip())
+}
+
+do_install:append () {
+    if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
+        install -d ${D}${sysconfdir}/systemd/system/nmb.service.d
+        install -d ${D}${sysconfdir}/systemd/system/smb.service.d
+        install -m 0644 ${WORKDIR}/nmb.service.d/override.conf \
+            ${D}${sysconfdir}/systemd/system/nmb.service.d/override.conf
+        install -m 0644 ${WORKDIR}/smb.service.d/override.conf \
+            ${D}${sysconfdir}/systemd/system/smb.service.d/override.conf
+    fi
 }
