@@ -80,7 +80,9 @@ IMAGE_ROOTFS_SIZE ?= "262144"
 IMAGE_ROOTFS_EXTRA_SPACE ?= "10240"
 
 # Image rootfs post-processing
-ROOTFS_POSTPROCESS_COMMAND += "tuxbox_rootfs_postprocess; "
+TUXBOX_SSH_PERSISTENT = "${@'0' if bb.utils.contains('IMAGE_FEATURES', 'read-only-rootfs', True, False, d) or bb.utils.contains('IMAGE_FEATURES', 'stateless-rootfs', True, False, d) else '1'}"
+
+ROOTFS_POSTPROCESS_COMMAND += "tuxbox_rootfs_postprocess; tuxbox_fix_ssh_default; "
 
 tuxbox_rootfs_postprocess() {
     # Set default timezone
@@ -97,6 +99,16 @@ tuxbox_rootfs_postprocess() {
     # Set permissions
     chmod 755 ${IMAGE_ROOTFS}/media
     chmod 755 ${IMAGE_ROOTFS}/mnt
+}
+
+tuxbox_fix_ssh_default() {
+    if [ "${TUXBOX_SSH_PERSISTENT}" = "1" ]; then
+        install -d ${IMAGE_ROOTFS}${sysconfdir}/default
+        cat > ${IMAGE_ROOTFS}${sysconfdir}/default/ssh <<'EOF'
+SYSCONFDIR=${SYSCONFDIR:-/etc/ssh}
+SSHD_OPTS=
+EOF
+    fi
 }
 
 # Image type
