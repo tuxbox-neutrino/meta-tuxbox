@@ -6,7 +6,7 @@ SRC_URI:append = " \
 		file://service \
 		"
 
-PR:append = ".1"
+PR:append = ".2"
 
 do_patch[postfuncs] = ""
 
