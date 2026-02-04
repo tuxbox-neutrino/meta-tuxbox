@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".6"
+PR:append = ".7"
 
 SRC_URI += " \
     file://nmb.service.d/override.conf \
