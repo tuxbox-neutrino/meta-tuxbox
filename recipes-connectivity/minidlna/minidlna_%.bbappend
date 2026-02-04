@@ -5,7 +5,7 @@ SRC_URI:append = " \
     file://minidlna.service \
 "
 
-PR:append = ".1"
+PR:append = ".2"
 
 CFLAGS:append = " -fcommon"
 
@@ -21,3 +21,5 @@ do_install:append() {
 }
 
 FILES:${PN} += "${systemd_unitdir}/system/minidlna.service"
+
+SYSTEMD_AUTO_ENABLE:${PN} = "disable"

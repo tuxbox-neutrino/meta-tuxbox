@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".8"
+PR:append = ".10"
 
 SRC_URI += " \
     file://nmb.service.d/override.conf \
@@ -97,3 +97,7 @@ FILES:${PN} += " \
     ${sysconfdir}/systemd/system/smb.service.d \
     ${sysconfdir}/systemd/system/smb.service.d/override.conf \
 "
+
+SYSTEMD_AUTO_ENABLE:${PN} = "disable"
+SYSTEMD_AUTO_ENABLE:${PN}-base = "disable"
+SYSTEMD_AUTO_ENABLE:winbind = "disable"
