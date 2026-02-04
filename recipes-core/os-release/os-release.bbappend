@@ -2,13 +2,13 @@
 
 # Some additional lines for /usr/lib/os-release -> /etc/os-release
 #
-OS_RELEASE_FIELDS:append = " HOME_URL SUPPORT_URL BUG_REPORT_URL VERSION_CODENAME NAME PRETTY_NAME DISTRO_VERSION"
+OS_RELEASE_FIELDS:append = " HOME_URL SUPPORT_URL BUG_REPORT_URL VERSION_CODENAME DISTRO_VERSION"
 
-PR:append = ".1"
+PR:append = ".2"
 
 HOME_URL ?= "https://github.com/tuxbox-neutrino"
 SUPPORT_URL ?= "https://wiki.tuxbox-neutrino.org"
 BUG_REPORT_URL ?= "https://forum.tuxbox-neutrino.org"
 NAME = "${ID}-Image"
-PRETTY_NAME = "OpenEmbedded ${ID}"
+PRETTY_NAME = "${DISTRO_NAME}"
 VERSION = "${DISTRO_VERSION}"
