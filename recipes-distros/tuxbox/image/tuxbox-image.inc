@@ -6,6 +6,10 @@ require recipes-core/images/core-image-minimal.bb
 
 LICENSE = "MIT"
 
+# WiFi user-space tools are included by default to support USB sticks.
+# Set TUXBOX_WIFI = "0" to disable in local.conf.user.inc.
+TUXBOX_WIFI ?= "1"
+
 # Image features
 IMAGE_FEATURES += " \
     package-management \
@@ -18,7 +22,8 @@ IMAGE_FEATURES += " \
 IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-base \
     packagegroup-tuxbox-neutrino \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'wifi', 'packagegroup-tuxbox-wifi', '', d)} \
+    ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi', '', d)} \
+    ${@'packagegroup-tuxbox-wifi-drivers' if (d.getVar('TUXBOX_WIFI') == '1' and bb.utils.contains_any('MACHINE_FEATURES', 'wifi linuxwifi wifi-direct', True, False, d)) else ''} \
 "
 
 # Neutrino core stack

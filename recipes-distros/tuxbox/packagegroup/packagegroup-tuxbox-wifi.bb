@@ -4,6 +4,7 @@
 
 DESCRIPTION = "Tuxbox-OS WiFi support packages"
 LICENSE = "MIT"
+PR = "r1"
 
 inherit packagegroup
 
@@ -12,15 +13,4 @@ RDEPENDS:${PN} = " \
     iw \
     wireless-tools \
     bluez5 \
-"
-
-# Common WiFi drivers
-RRECOMMENDS:${PN} = " \
-    kernel-module-carl9170 \
-    kernel-module-rt2800usb \
-    kernel-module-rtl8192cu \
-    kernel-module-zd1211rw \
-    linux-firmware-rtl8192cu \
-    linux-firmware-rt2870 \
-    linux-firmware-zd1211 \
 "
