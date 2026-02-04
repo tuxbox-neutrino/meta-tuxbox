@@ -23,7 +23,7 @@ IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-base \
     packagegroup-tuxbox-neutrino \
     ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi', '', d)} \
-    ${@'packagegroup-tuxbox-wifi-drivers' if (d.getVar('TUXBOX_WIFI') == '1' and bb.utils.contains_any('MACHINE_FEATURES', 'wifi linuxwifi wifi-direct', True, False, d)) else ''} \
+    ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi-drivers', '', d)} \
 "
 
 # Neutrino core stack

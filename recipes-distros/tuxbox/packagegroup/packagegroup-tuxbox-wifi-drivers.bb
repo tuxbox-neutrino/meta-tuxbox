@@ -1,21 +1,18 @@
-# Packagegroup: Tuxbox WiFi Drivers
+# Packagegroup: Tuxbox WiFi Firmware
 #
-# Optional WiFi kernel modules and firmware packages.
+# WiFi firmware packages (kernel modules are provided by the machine kernel).
 
-DESCRIPTION = "Tuxbox-OS WiFi driver and firmware packages"
+DESCRIPTION = "Tuxbox-OS WiFi firmware packages"
 LICENSE = "MIT"
-PR = "r1"
+PR = "r2"
 
 inherit packagegroup
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-RRECOMMENDS:${PN} = " \
-    kernel-module-carl9170 \
-    kernel-module-rt2800usb \
-    kernel-module-rtl8192cu \
-    kernel-module-zd1211rw \
+RDEPENDS:${PN} = " \
     linux-firmware-carl9170 \
     linux-firmware-ralink \
+    linux-firmware-rtl8188 \
     linux-firmware-rtl8192cu \
 "
