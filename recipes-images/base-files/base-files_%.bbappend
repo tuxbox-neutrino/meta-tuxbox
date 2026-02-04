@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-PR:append = ".1"
+PR:append = ".2"
 
 SRC_URI += " \
 		file://backup@.service \
@@ -27,6 +27,7 @@ SRC_URI += " \
 		file://nsswitch.conf \
 		file://restore@.service \
 		file://shells \
+		file://tuxbox-prompt.sh \
 		file://vconsole.conf \
 "
 
@@ -38,7 +39,7 @@ do_custom_baseissueinstall() {
 	do_install_basefilesissue
 	install -m 644 ${WORKDIR}/issue*  ${D}${sysconfdir}
 	cat ${WORKDIR}/banner.template								>> ${D}${sysconfdir}/welcome
-	printf "\n\nWelcome at ${IMAGE_BASENAME} image on ${MACHINE_BRAND} ${MACHINE_NAME}\n"	>> ${D}${sysconfdir}/welcome
+	printf "\n\nWelcome to ${DISTRO_NAME} (${IMAGE_BASENAME}) on ${MACHINE}\n"		>> ${D}${sysconfdir}/welcome
 	cat ${D}${sysconfdir}/welcome 								> ${D}${sysconfdir}/issue
 	cat ${D}${sysconfdir}/welcome 								> ${D}${sysconfdir}/issue.net
 }
@@ -46,7 +47,7 @@ do_custom_baseissueinstall() {
 do_install:append () {
 	install -d ${D}${localstatedir}/update ${D}${systemd_unitdir}/system/multi-user.target.wants ${D}${bindir} ${D}${sysconfdir}/systemd/system/multi-user.target.wants
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
-		install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}/modules-load.d
+		install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}/modules-load.d ${D}${sysconfdir}/profile.d
 		install -d ${D}${sysconfdir}/firstboot.d ${D}${sysconfdir}/local.d
 		install -m 0755 ${WORKDIR}/local_cam.sh ${D}${bindir}
 		install -m 0644 ${WORKDIR}/locale.conf  ${D}${sysconfdir}
@@ -66,6 +67,7 @@ do_install:append () {
 		install -m 0644 ${WORKDIR}/local.service  ${D}${systemd_unitdir}/system
 		ln -sf /lib/systemd/system/local.service  ${D}${systemd_unitdir}/system/multi-user.target.wants
 		install -m 0755 ${WORKDIR}/local.sh ${D}${bindir}
+		install -m 0644 ${WORKDIR}/tuxbox-prompt.sh ${D}${sysconfdir}/profile.d/tuxbox-prompt.sh
 		install -m 0644 ${WORKDIR}/vconsole.conf  ${D}${sysconfdir}
 		install -m 0755 ${WORKDIR}/getty-toggle  ${D}${bindir}
 		install -m 0644 ${WORKDIR}/gbox.service ${D}${systemd_unitdir}/system
