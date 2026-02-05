@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r7"
+PR = "r8"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-qemu-image"
@@ -29,6 +29,7 @@ IMAGE_INSTALL:append = " \
     xinit \
     xf86-video-vesa \
     xf86-video-fbdev \
+    tuxbox-qemu-xorgconf \
     tuxbox-qemu-neutrino \
 "
 
