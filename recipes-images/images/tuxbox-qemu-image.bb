@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r5"
+PR = "r6"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-qemu-image"
@@ -23,12 +23,15 @@ IMAGE_FEATURES:append = " allow-root-login"
 # Keep multiple locales for QEMU convenience.
 IMAGE_LINGUAS = "en-us en-gb de-de fr-fr"
 
-# Keep the image lean and QEMU-friendly (no Neutrino/driver stack).
+# QEMU GUI stack (Neutrino + X11) for interactive testing.
+IMAGE_INSTALL:append = " \
+    xserver-xorg \
+    xinit \
+    tuxbox-qemu-neutrino \
+"
+
+# Avoid full multimedia stack in QEMU (relies on SoC EGL providers).
 IMAGE_INSTALL:remove = " \
-    packagegroup-tuxbox-neutrino \
-    neutrino \
-    libstb-hal \
-    neutrino-plugins \
     packagegroup-tuxbox-multimedia \
 "
 
