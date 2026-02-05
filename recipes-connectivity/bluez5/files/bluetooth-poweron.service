@@ -1,6 +1,7 @@
 [Unit]
 Description=Bluetooth Power Switch
 After=bluetooth.target
+ConditionVirtualization=no
 
 [Service]
 Type=oneshot
@@ -10,4 +11,3 @@ RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
-

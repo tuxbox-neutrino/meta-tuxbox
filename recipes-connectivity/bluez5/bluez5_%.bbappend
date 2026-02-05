@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+PR:append = ".1"
+
 SRC_URI:append = " file://bluetooth-poweron.service"
 
 RDEPENDS:${PN} = "firmware-rtl8761b"
