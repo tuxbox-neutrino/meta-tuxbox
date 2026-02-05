@@ -1,15 +1,22 @@
 [Unit]
 Description=Tuxbox QEMU Neutrino (X11)
-After=systemd-user-sessions.service
-Wants=systemd-user-sessions.service
+After=systemd-user-sessions.service systemd-logind.service \
+      systemd-udevd.service systemd-udevd-control.socket systemd-udevd-kernel.socket
+Wants=systemd-user-sessions.service systemd-logind.service \
+      systemd-udevd.service systemd-udevd-control.socket systemd-udevd-kernel.socket
 ConditionVirtualization=qemu
 
 [Service]
 Type=simple
 Environment=DISPLAY=:0
+ExecStartPre=/bin/sh -c 'udevadm control --reload-rules || true'
+ExecStartPre=/bin/sh -c 'udevadm trigger --subsystem-match=drm || true'
 ExecStart=/usr/bin/tuxbox-qemu-neutrino
 Restart=on-failure
 RestartSec=2
+User=root
+PAMName=login
+UtmpIdentifier=tty7
 TTYPath=/dev/tty7
 TTYReset=no
 TTYVHangup=no
