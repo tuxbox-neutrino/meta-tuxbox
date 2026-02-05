@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 
-exec /usr/bin/xinit /usr/bin/neutrino -- :0 -nolisten tcp vt7
+exec /usr/bin/xinit /usr/bin/neutrino -- /usr/bin/Xorg :0 -nolisten tcp -keeptty vt7

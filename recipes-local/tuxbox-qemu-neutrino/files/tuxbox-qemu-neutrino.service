@@ -10,6 +10,11 @@ Environment=DISPLAY=:0
 ExecStart=/usr/bin/tuxbox-qemu-neutrino
 Restart=on-failure
 RestartSec=2
+TTYPath=/dev/tty7
+TTYReset=no
+TTYVHangup=no
+TTYVTDisallocate=no
+StandardInput=tty
 
 [Install]
 WantedBy=multi-user.target
