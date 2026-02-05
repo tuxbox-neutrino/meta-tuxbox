@@ -8,10 +8,14 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r4"
+PR = "r5"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-qemu-image"
+
+# Give QEMU extra rootfs space for opkg testing (e.g. Neutrino).
+TUXBOX_QEMU_ROOTFS_EXTRA_SPACE ?= "1048576"
+IMAGE_ROOTFS_EXTRA_SPACE = "${TUXBOX_QEMU_ROOTFS_EXTRA_SPACE}"
 
 # Allow root SSH login with empty password for automated smoke tests.
 IMAGE_FEATURES:append = " allow-root-login"
