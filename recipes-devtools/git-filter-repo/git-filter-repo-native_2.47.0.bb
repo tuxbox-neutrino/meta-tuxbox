@@ -8,9 +8,9 @@ LIC_FILES_CHKSUM = "\
 "
 
 SRC_URI = "git://github.com/newren/git-filter-repo.git;tag=v2.47.0;protocol=https"
-SRCREV = "6f79afc8c90c592a3052e6cc53c2ca8907515bca"
+SRCREV = "v2.47.0"
 PV = "2.47.0"
-PR = "r1"
+PR = "r2"
 
 S = "${WORKDIR}/git"
 
