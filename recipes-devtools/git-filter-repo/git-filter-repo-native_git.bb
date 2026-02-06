@@ -7,10 +7,10 @@ LIC_FILES_CHKSUM = "\
     file://COPYING.mit;md5=b7ac8a79b844e8de331d3ffa3b1c0894 \
 "
 
-SRC_URI = "git://github.com/newren/git-filter-repo.git;tag=v2.47.0;protocol=https"
-SRCREV = "v2.47.0"
+SRC_URI = "git://github.com/newren/git-filter-repo.git;branch=main;protocol=https"
+SRCREV = "6f79afc8c90c592a3052e6cc53c2ca8907515bca"
 PV = "2.47.0"
-PR = "r2"
+PR = "r4"
 
 S = "${WORKDIR}/git"
 
