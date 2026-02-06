@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+cmd="$(command -v "$0" 2>/dev/null || true)"
+if [ -n "$cmd" ]; then
+    script_dir="$(cd "$(dirname "$cmd")" && pwd)"
+else
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+fi
+
+makefile="${script_dir}/../share/makeit/Makefile"
+if [ ! -f "$makefile" ]; then
+    echo "makeit: Makefile not found: $makefile" >&2
+    exit 1
+fi
+
+exec make -f "$makefile" "$@"
