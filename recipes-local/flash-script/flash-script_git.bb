@@ -11,9 +11,17 @@ FLASH_SCRIPT_BRANCH = "${@d.getVar('MACHINE_DRIVER') or 'master'}"
 
 IMAGE_FEATURES += " ${PN} "
 
-SRC_URI = "git://github.com/tuxbox-neutrino/flash-script.git;branch=${FLASH_SCRIPT_BRANCH};protocol=https"
+SRC_URI = " \
+	git://github.com/tuxbox-neutrino/flash-script.git;branch=${FLASH_SCRIPT_BRANCH};protocol=https \
+	file://backup_rootfs.jpg \
+	file://update_download.jpg \
+	file://update_decompress.jpg \
+	file://update_kernel.jpg \
+	file://update_rootfs.jpg \
+	file://update_done.jpg \
+"
 
-PR = "r0"
+PR = "r2"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
@@ -21,9 +29,16 @@ S = "${WORKDIR}/git"
 
 do_install () {
 	install -d ${D}${bindir}
-        install -m 755 ${S}/flash ${D}${bindir}
+	        install -m 755 ${S}/flash ${D}${bindir}
+	install -d ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/backup_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/update_download.jpg ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/update_decompress.jpg ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/update_kernel.jpg ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/update_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
+	install -m 0644 ${WORKDIR}/update_done.jpg ${D}${datadir}/tuxbox/neutrino/icons
 }
 
-# FILES_${PN} += " \
-# 	/usr/bin \
-# "
+FILES:${PN} += " \
+	${datadir}/tuxbox/neutrino/icons \
+"
