@@ -6,11 +6,11 @@
 # This class is intended for PKGV usage only.
 #
 # Additional controls:
-# - GITPKGV_PREFIX: prefix used by GITPKGVTAG (default: "git")
+# - GITPKGV_PREFIX: prefix used by GITPKGVTAG (default: "-git")
 # - GITPKGV_TAG_REGEXP: regexp used to normalize git describe output
 # - GITPKGVTAG_STYLE: tag formatting mode for GITPKGVTAG (default: "count")
-#   - "count":   <tag>-<prefix><commit-count>+<short-rev>
-#   - "count-short": <tag>-<prefix><commit-count>
+#   - "count":   <tag><prefix><commit-count>+<short-rev>
+#   - "count-short": <tag><prefix><commit-count>
 #   - "exact":   exact tag only (fallback to generated value when not on tag)
 #   - "describe": output from git describe normalized to package-safe syntax
 # - GITPKGVTAG_NO_WARN_ON_NO_TAG: set to "1" to suppress no-tag warnings
@@ -20,7 +20,7 @@ GITPKGV = "${@get_git_pkgv(d, False)}"
 GITPKGVTAG = "${@get_git_pkgv(d, True)}"
 
 GITPKGV_TAG_REGEXP ??= "(\d.*)-(.*)-g(.*)"
-GITPKGV_PREFIX ??= "git"
+GITPKGV_PREFIX ??= "-git"
 GITPKGVTAG_STYLE ??= "count"
 GITPKGVTAG_NO_WARN_ON_NO_TAG ?= "0"
 SRCPV_WORKSPACE ?= "999"
@@ -72,8 +72,8 @@ def _gitpkgv_workspace_value(d):
     return None
 
 def _gitpkgv_tag_fallback(d, commits, rev_short):
-    prefix = d.getVar("GITPKGV_PREFIX") or "git"
-    return "0.0-%s%s+%s" % (prefix, commits, rev_short)
+    prefix = d.getVar("GITPKGV_PREFIX") or "-git"
+    return "0.0%s%s+%s" % (prefix, commits, rev_short)
 
 def _gitpkgv_repo_has_tags(d, vars):
     import bb
@@ -168,7 +168,7 @@ def get_git_pkgv(d, use_tags):
                         commits = f.readline(128).strip() or "0"
 
                 if use_tags:
-                    prefix = d.getVar("GITPKGV_PREFIX") or "git"
+                    prefix = d.getVar("GITPKGV_PREFIX") or "-git"
                     style = _gitpkgv_tag_style(d)
                     try:
                         if style == "exact":
@@ -180,11 +180,11 @@ def get_git_pkgv(d, use_tags):
                         elif style == "count-short":
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
-                            ver = "%s-%s%s" % (tag, prefix, commits)
+                            ver = "%s%s%s" % (tag, prefix, commits)
                         else:
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
-                            ver = "%s-%s%s+%s" % (tag, prefix, commits, rev_short)
+                            ver = "%s%s%s+%s" % (tag, prefix, commits, rev_short)
                     except Exception:
                         has_tags = _gitpkgv_repo_has_tags(d, vars)
                         if (not has_tags) and d.getVar("GITPKGVTAG_NO_WARN_ON_NO_TAG") != "1":
