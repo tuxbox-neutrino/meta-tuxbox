@@ -10,6 +10,7 @@
 # - GITPKGV_TAG_REGEXP: regexp used to normalize git describe output
 # - GITPKGVTAG_STYLE: tag formatting mode for GITPKGVTAG (default: "count")
 #   - "count":   <tag>-<prefix><commit-count>+<short-rev>
+#   - "count-short": <tag>-<prefix><commit-count>
 #   - "exact":   exact tag only (fallback to generated value when not on tag)
 #   - "describe": output from git describe normalized to package-safe syntax
 # - GITPKGVTAG_NO_WARN_ON_NO_TAG: set to "1" to suppress no-tag warnings
@@ -53,7 +54,7 @@ def _gitpkgv_tag_style(d):
     import bb
 
     style = (d.getVar("GITPKGVTAG_STYLE") or "count").strip().lower()
-    if style not in ("count", "exact", "describe"):
+    if style not in ("count", "count-short", "exact", "describe"):
         bb.warn(
             "Unsupported GITPKGVTAG_STYLE '%s', using default 'count'." % style
         )
@@ -176,6 +177,10 @@ def get_git_pkgv(d, use_tags):
                         elif style == "describe":
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             ver = _gitpkgv_describe_version(d, output)
+                        elif style == "count-short":
+                            output = _gitpkgv_describe(d, vars, exact_match=False)
+                            tag = gitpkgv_drop_tag_prefix(d, output)
+                            ver = "%s-%s%s" % (tag, prefix, commits)
                         else:
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
