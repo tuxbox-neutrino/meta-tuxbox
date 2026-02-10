@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 
-BACKEND_CONF="/etc/tuxbox/flash-backend.conf"
+BACKEND_CONF="${FLASH_BACKEND_CONF_PATH:-/etc/tuxbox/flash-backend.conf}"
+PROFILE_CONF="${FLASH_MACHINE_PROFILE_PATH:-/etc/tuxbox/flash-machine-profile.conf}"
 
 backend_override=""
 image_dir=""
@@ -18,6 +19,10 @@ Options:
   --ofgwrite-bin <path>        Override ofgwrite executable (default: OFGWRITE_BIN or "ofgwrite")
   --quiet                      Suppress informational output
   -h, --help                   Show this help
+
+Environment overrides:
+  FLASH_BACKEND_CONF_PATH      Backend config file (default: /etc/tuxbox/flash-backend.conf)
+  FLASH_MACHINE_PROFILE_PATH   Machine profile file (default: /etc/tuxbox/flash-machine-profile.conf)
 EOF
 }
 
@@ -71,6 +76,15 @@ if [ -f "${BACKEND_CONF}" ]; then
 	backend_from_conf="${FLASH_BACKEND:-}"
 fi
 
+machine_cap_ofgwrite=""
+machine_name=""
+if [ -f "${PROFILE_CONF}" ]; then
+	# shellcheck disable=SC1091
+	. "${PROFILE_CONF}"
+	machine_cap_ofgwrite="${FLASH_MACHINE_CAP_OFGWRITE:-}"
+	machine_name="${FLASH_MACHINE:-}"
+fi
+
 if [ -n "${backend_override}" ]; then
 	backend="${backend_override}"
 else
@@ -83,8 +97,16 @@ case "${backend}" in
 		exit 0
 		;;
 	ofgwrite)
+		if [ "${machine_cap_ofgwrite}" = "0" ]; then
+			fail "backend=ofgwrite but machine profile marks it unsupported (machine=${machine_name:-unknown})"
+		fi
+
 		if ! command -v "${ofgwrite_bin}" >/dev/null 2>&1; then
 			fail "backend=ofgwrite but executable not found: ${ofgwrite_bin}"
+		fi
+
+		if [ -z "${machine_cap_ofgwrite}" ]; then
+			log "warning: no FLASH_MACHINE_CAP_OFGWRITE in profile, running generic checks only"
 		fi
 
 		if [ -z "${image_dir}" ]; then
