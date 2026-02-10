@@ -8,6 +8,7 @@ backend_override=""
 image_dir=""
 ofgwrite_bin="${OFGWRITE_BIN:-ofgwrite}"
 quiet=0
+run_nowrite_probe="${FLASH_PREFLIGHT_RUN_OFGWRITE_NOWRITE:-0}"
 
 print_usage() {
 	cat <<'EOF'
@@ -35,6 +36,40 @@ log() {
 fail() {
 	printf 'ERROR: %s\n' "$*" >&2
 	exit 1
+}
+
+has_kernel_file() {
+	dir="$1"
+	if [ -f "${dir}/kernel.bin" ] || [ -f "${dir}/uImage" ]; then
+		return 0
+	fi
+	ls "${dir}"/*kernel*.bin >/dev/null 2>&1
+}
+
+has_rootfs_file() {
+	dir="$1"
+	for name in \
+		rootfs.bin \
+		root_cfe_auto.bin \
+		root_cfe_auto.jffs2 \
+		oe_rootfs.bin \
+		e2jffs2.img \
+		rootfs.tar.bz2 \
+		rootfs.ubi \
+		rootfs.tar.xz \
+		rootfs-one.tar.bz2 \
+		rootfs-two.tar.bz2; do
+		if [ -f "${dir}/${name}" ]; then
+			return 0
+		fi
+	done
+	if ls "${dir}"/*.nfi >/dev/null 2>&1; then
+		return 0
+	fi
+	if ls "${dir}"/*.tar.xz >/dev/null 2>&1; then
+		return 0
+	fi
+	return 1
 }
 
 while [ "$#" -gt 0 ]; do
@@ -125,6 +160,15 @@ case "${backend}" in
 		fi
 
 		[ -d "${image_dir}" ] || fail "image directory does not exist: ${image_dir}"
+		has_kernel_file "${image_dir}" || fail "image directory has no kernel payload: ${image_dir}"
+		has_rootfs_file "${image_dir}" || fail "image directory has no rootfs payload: ${image_dir}"
+
+		if [ "${run_nowrite_probe}" != "1" ]; then
+			log "flash preflight ok: image payload found (skipping ofgwrite -n probe)"
+			log "hint: set FLASH_PREFLIGHT_RUN_OFGWRITE_NOWRITE=1 to enable the ofgwrite no-write probe"
+			exit 0
+		fi
+
 		log "running ofgwrite no-write preflight: ${ofgwrite_bin} -n -q ${image_dir}"
 		if "${ofgwrite_bin}" -n -q "${image_dir}"; then
 			log "flash preflight ok: ofgwrite no-write mode succeeded"
