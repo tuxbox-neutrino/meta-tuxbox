@@ -95,6 +95,7 @@ python tuxbox_generate_version_info() {
     image_update_url = _safe(d.getVar("TUXBOX_IMAGE_UPDATE_URL"))
     image_update_info_file = _safe(d.getVar("TUXBOX_IMAGE_UPDATE_INFO_FILE"), "imageversion")
     image_file_name = _safe(d.getVar("TUXBOX_IMAGE_FILE_NAME"))
+    flash_backend = _safe(d.getVar("TUXBOX_FLASH_BACKEND"), "script")
     creator = _safe(d.getVar("CREATOR"), "Tuxbox-OS Builder")
     build_date = _safe(d.getVar("TUXBOX_IMAGEBUILD"))
 
@@ -120,6 +121,7 @@ python tuxbox_generate_version_info() {
         ("image_name", image_name),
         ("image_version", image_version),
         ("image_file_name", image_file_name),
+        ("flash_backend", flash_backend),
         ("image_update_url", image_update_url),
         ("image_update_info_file", image_update_info_file),
         ("build_date", build_date),

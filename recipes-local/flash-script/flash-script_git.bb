@@ -21,7 +21,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r2"
+PR = "r3"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
@@ -30,6 +30,10 @@ S = "${WORKDIR}/git"
 do_install () {
 	install -d ${D}${bindir}
 	        install -m 755 ${S}/flash ${D}${bindir}
+	install -d ${D}${sysconfdir}/tuxbox
+	cat > ${D}${sysconfdir}/tuxbox/flash-backend.conf <<EOF
+FLASH_BACKEND=${TUXBOX_FLASH_BACKEND}
+EOF
 	install -d ${D}${datadir}/tuxbox/neutrino/icons
 	install -m 0644 ${WORKDIR}/backup_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
 	install -m 0644 ${WORKDIR}/update_download.jpg ${D}${datadir}/tuxbox/neutrino/icons
@@ -40,5 +44,6 @@ do_install () {
 }
 
 FILES:${PN} += " \
+	${sysconfdir}/tuxbox/flash-backend.conf \
 	${datadir}/tuxbox/neutrino/icons \
 "
