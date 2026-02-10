@@ -3,12 +3,35 @@ set -eu
 
 BACKEND_PREFLIGHT_BIN="${FLASH_BACKEND_PREFLIGHT_BIN:-/usr/bin/flash-backend-preflight}"
 OFGWRITE_BIN="${FLASH_BACKEND_OFGWRITE_BIN:-ofgwrite}"
+PROFILE_CONF="${FLASH_MACHINE_PROFILE_PATH:-/etc/tuxbox/flash-machine-profile.conf}"
+PROC_CMDLINE_FILE="${FLASH_PROC_CMDLINE_FILE:-/proc/cmdline}"
 FLASH_VERSION_FILE="${FLASH_VERSION_FILE_PATH:-/etc/image-version}"
 CURL_BIN="${FLASH_CURL_BIN:-curl}"
 UNZIP_BIN="${FLASH_UNZIP_BIN:-unzip}"
 IMAGE_BASE_OVERRIDE="${FLASH_IMAGE_BASE_OVERRIDE:-}"
-ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-0}"
+ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-}"
+ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_ACTIVE_SLOT_REQUIRE_BACKUP:-}"
+ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
+ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
+BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
+TARGET_IS_ACTIVE_SLOT="0"
+ACTIVE_SLOT=""
+
+if [ -f "${PROFILE_CONF}" ]; then
+	# shellcheck disable=SC1091
+	. "${PROFILE_CONF}"
+fi
+
+if [ -z "${ALLOW_ACTIVE_SLOT}" ]; then
+	ALLOW_ACTIVE_SLOT="${FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT_DEFAULT:-0}"
+fi
+if [ -z "${ACTIVE_SLOT_REQUIRE_BACKUP}" ]; then
+	ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_DEFAULT:-1}"
+fi
+if [ -z "${ACTIVE_SLOT_BACKUP_DIR}" ]; then
+	ACTIVE_SLOT_BACKUP_DIR="${FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT:-/media/hdd/backup/flash-active-slot}"
+fi
 
 print_usage() {
 	cat <<'EOF'
@@ -38,13 +61,38 @@ fail() {
 	exit 1
 }
 
+validate_bool() {
+	name="$1"
+	value="$2"
+	case "${value}" in
+		0|1)
+			;;
+		*)
+			fail "invalid ${name}='${value}' (expected: 0 or 1)"
+			;;
+	esac
+}
+
+resolve_executable() {
+	cmd="$1"
+	if [ -x "${cmd}" ]; then
+		printf '%s\n' "${cmd}"
+		return 0
+	fi
+	if command -v "${cmd}" >/dev/null 2>&1; then
+		command -v "${cmd}"
+		return 0
+	fi
+	return 1
+}
+
 active_slot_from_cmdline() {
-	cmdline="$(cat /proc/cmdline 2>/dev/null || true)"
+	cmdline="$(cat "${PROC_CMDLINE_FILE}" 2>/dev/null || true)"
 	case "${cmdline}" in
 		*rootsubdir=linuxrootfs[0-9]*)
 			slot="${cmdline#*rootsubdir=linuxrootfs}"
 			slot="${slot%% *}"
-			slot="${slot%%[^0-9]*}"
+			slot="${slot%%[!0-9]*}"
 			printf '%s\n' "${slot}"
 			;;
 		*)
@@ -55,18 +103,24 @@ active_slot_from_cmdline() {
 
 ensure_not_active_slot() {
 	target_slot="$1"
-	active_slot="$(active_slot_from_cmdline)"
+	ACTIVE_SLOT="$(active_slot_from_cmdline)"
+	TARGET_IS_ACTIVE_SLOT="0"
 
-	[ -n "${active_slot}" ] || return 0
-	[ "${ALLOW_ACTIVE_SLOT}" = "1" ] && return 0
+	[ -n "${ACTIVE_SLOT}" ] || return 0
 
-	if [ "${target_slot}" = "${active_slot}" ]; then
+	if [ "${target_slot}" = "${ACTIVE_SLOT}" ]; then
+		TARGET_IS_ACTIVE_SLOT="1"
+		[ "${ALLOW_ACTIVE_SLOT}" = "1" ] && return 0
 		fail "refusing to flash active slot ${target_slot} from live system; set FLASH_ALLOW_ACTIVE_SLOT=1 to override"
 	fi
 }
 
 stop_frontend_runtime() {
-	[ "${STOP_NEUTRINO_BEFORE_FLASH}" = "1" ] || return 0
+	stop_required="${STOP_NEUTRINO_BEFORE_FLASH}"
+	if [ "${TARGET_IS_ACTIVE_SLOT}" = "1" ]; then
+		stop_required="1"
+	fi
+	[ "${stop_required}" = "1" ] || return 0
 
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl stop neutrino.service >/dev/null 2>&1 || true
@@ -80,6 +134,25 @@ stop_frontend_runtime() {
 	fi
 
 	sync
+}
+
+run_active_slot_backup() {
+	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
+	if [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" != "1" ]; then
+		log "warning: active-slot backup disabled; proceeding without settings backup"
+		return 0
+	fi
+
+	backup_cmd="$(resolve_executable "${BACKUP_BIN}" || true)"
+	[ -n "${backup_cmd}" ] || fail "active-slot flash requires backup command but '${BACKUP_BIN}' is unavailable"
+	mkdir -p "${ACTIVE_SLOT_BACKUP_DIR}" || fail "cannot create backup directory: ${ACTIVE_SLOT_BACKUP_DIR}"
+
+	timestamp="$(date +%Y%m%d_%H%M%S)"
+	backup_name="${ACTIVE_SLOT_BACKUP_NAME_PREFIX}${slot}-${timestamp}"
+	backup_file="${ACTIVE_SLOT_BACKUP_DIR}/${backup_name}.tar.gz"
+	log "creating settings backup for active slot ${slot}: ${backup_file}"
+	"${backup_cmd}" "${ACTIVE_SLOT_BACKUP_DIR}" "${backup_name}" || fail "active-slot backup command failed"
+	[ -s "${backup_file}" ] || fail "active-slot backup archive missing or empty: ${backup_file}"
 }
 
 require_command() {
@@ -224,6 +297,16 @@ esac
 if [ "${slot}" -lt 1 ]; then
 	fail "slot must be >= 1"
 fi
+
+validate_bool "FLASH_ALLOW_ACTIVE_SLOT" "${ALLOW_ACTIVE_SLOT}"
+validate_bool "FLASH_ACTIVE_SLOT_REQUIRE_BACKUP" "${ACTIVE_SLOT_REQUIRE_BACKUP}"
+case "${ACTIVE_SLOT_BACKUP_DIR}" in
+	/*)
+		;;
+	*)
+		fail "FLASH_ACTIVE_SLOT_BACKUP_DIR must be absolute: ${ACTIVE_SLOT_BACKUP_DIR}"
+		;;
+esac
 ensure_not_active_slot "${slot}"
 
 ofgwrite_force="0"
@@ -308,6 +391,7 @@ fi
 
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
 stop_frontend_runtime
+run_active_slot_backup
 
 if [ "${ofgwrite_force}" = "1" ]; then
 	exec "${OFGWRITE_BIN}" -f -m "${slot}" "${image_dir}"

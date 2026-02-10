@@ -12,7 +12,7 @@ active_slot_from_cmdline() {
 		*rootsubdir=linuxrootfs[0-9]*)
 			slot="${cmdline#*rootsubdir=linuxrootfs}"
 			slot="${slot%% *}"
-			slot="${slot%%[^0-9]*}"
+			slot="${slot%%[!0-9]*}"
 			printf '%s\n' "${slot}"
 			;;
 		*)
