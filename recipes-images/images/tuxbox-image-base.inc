@@ -278,7 +278,7 @@ IMAGE_INSTALL += " \
 	nfs-utils \
 	nfs-utils-client \
 	ntpdate \
-	ofgwrite \
+	${@bb.utils.contains('TUXBOX_FLASH_BACKEND', 'ofgwrite', 'ofgwrite', '', d)} \
 	openssh \
 	openssl \
 	opkg \

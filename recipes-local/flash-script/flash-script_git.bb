@@ -21,11 +21,13 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r3"
+PR = "r4"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
+
+RDEPENDS:${PN}:append = "${@bb.utils.contains('TUXBOX_FLASH_BACKEND', 'ofgwrite', ' ofgwrite', '', d)}"
 
 do_install () {
 	install -d ${D}${bindir}
