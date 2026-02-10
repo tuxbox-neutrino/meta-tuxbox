@@ -7,12 +7,10 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=285b6276c3a2d7b9bb2783a4ef5af8d4"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FLASH_SCRIPT_BRANCH = "${@d.getVar('MACHINE_DRIVER') or 'master'}"
-
 IMAGE_FEATURES += " ${PN} "
 
 SRC_URI = " \
-	git://github.com/tuxbox-neutrino/flash-script.git;branch=${FLASH_SCRIPT_BRANCH};protocol=https \
+	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
 	file://flash-ofgwrite-preflight.sh \
 	file://flash-dispatch.sh \
 	file://flash-backend-script.sh \
@@ -25,7 +23,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r7"
+PR = "r8"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
@@ -56,6 +54,7 @@ FLASH_KERNEL_FILE="${KERNEL_FILE}"
 FLASH_ROOTFS_FILE="${ROOTFS_FILE}"
 FLASH_IMAGE_FSTYPES="${IMAGE_FSTYPES}"
 FLASH_MACHINE_CAP_OFGWRITE="${TUXBOX_FLASH_MACHINE_CAP_OFGWRITE}"
+FLASH_SCRIPT_MODE="${TUXBOX_FLASH_SCRIPT_MODE}"
 EOF
 	install -d ${D}${datadir}/tuxbox/neutrino/icons
 	install -m 0644 ${WORKDIR}/backup_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
