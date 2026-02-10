@@ -13,6 +13,7 @@ IMAGE_FEATURES += " ${PN} "
 
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${FLASH_SCRIPT_BRANCH};protocol=https \
+	file://flash-ofgwrite-preflight.sh \
 	file://backup_rootfs.jpg \
 	file://update_download.jpg \
 	file://update_decompress.jpg \
@@ -21,7 +22,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r4"
+PR = "r5"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
@@ -31,7 +32,8 @@ RDEPENDS:${PN}:append = "${@bb.utils.contains('TUXBOX_FLASH_BACKEND', 'ofgwrite'
 
 do_install () {
 	install -d ${D}${bindir}
-	        install -m 755 ${S}/flash ${D}${bindir}
+	install -m 0755 ${S}/flash ${D}${bindir}
+	install -m 0755 ${WORKDIR}/flash-ofgwrite-preflight.sh ${D}${bindir}/flash-backend-preflight
 	install -d ${D}${sysconfdir}/tuxbox
 	cat > ${D}${sysconfdir}/tuxbox/flash-backend.conf <<EOF
 FLASH_BACKEND=${TUXBOX_FLASH_BACKEND}
