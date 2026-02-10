@@ -7,6 +7,8 @@ FLASH_VERSION_FILE="${FLASH_VERSION_FILE_PATH:-/etc/image-version}"
 CURL_BIN="${FLASH_CURL_BIN:-curl}"
 UNZIP_BIN="${FLASH_UNZIP_BIN:-unzip}"
 IMAGE_BASE_OVERRIDE="${FLASH_IMAGE_BASE_OVERRIDE:-}"
+ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-0}"
+STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
 
 print_usage() {
 	cat <<'EOF'
@@ -34,6 +36,50 @@ log() {
 fail() {
 	printf 'ERROR: %s\n' "$*" >&2
 	exit 1
+}
+
+active_slot_from_cmdline() {
+	cmdline="$(cat /proc/cmdline 2>/dev/null || true)"
+	case "${cmdline}" in
+		*rootsubdir=linuxrootfs[0-9]*)
+			slot="${cmdline#*rootsubdir=linuxrootfs}"
+			slot="${slot%% *}"
+			slot="${slot%%[^0-9]*}"
+			printf '%s\n' "${slot}"
+			;;
+		*)
+			printf '%s\n' ""
+			;;
+	esac
+}
+
+ensure_not_active_slot() {
+	target_slot="$1"
+	active_slot="$(active_slot_from_cmdline)"
+
+	[ -n "${active_slot}" ] || return 0
+	[ "${ALLOW_ACTIVE_SLOT}" = "1" ] && return 0
+
+	if [ "${target_slot}" = "${active_slot}" ]; then
+		fail "refusing to flash active slot ${target_slot} from live system; set FLASH_ALLOW_ACTIVE_SLOT=1 to override"
+	fi
+}
+
+stop_frontend_runtime() {
+	[ "${STOP_NEUTRINO_BEFORE_FLASH}" = "1" ] || return 0
+
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl stop neutrino.service >/dev/null 2>&1 || true
+		systemctl stop neutrino >/dev/null 2>&1 || true
+	fi
+
+	if command -v pkill >/dev/null 2>&1; then
+		pkill -x neutrino >/dev/null 2>&1 || true
+	elif command -v killall >/dev/null 2>&1; then
+		killall neutrino >/dev/null 2>&1 || true
+	fi
+
+	sync
 }
 
 require_command() {
@@ -178,6 +224,7 @@ esac
 if [ "${slot}" -lt 1 ]; then
 	fail "slot must be >= 1"
 fi
+ensure_not_active_slot "${slot}"
 
 ofgwrite_force="0"
 if [ -n "${force_arg}" ]; then
@@ -260,6 +307,7 @@ fi
 [ -x "${BACKEND_PREFLIGHT_BIN}" ] || fail "preflight command not executable: ${BACKEND_PREFLIGHT_BIN}"
 
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
+stop_frontend_runtime
 
 if [ "${ofgwrite_force}" = "1" ]; then
 	exec "${OFGWRITE_BIN}" -f -m "${slot}" "${image_dir}"

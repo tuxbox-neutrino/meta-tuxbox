@@ -23,7 +23,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r8"
+PR = "r9"
 PV = "0.1+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 

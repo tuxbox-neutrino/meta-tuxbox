@@ -110,12 +110,18 @@ case "${backend}" in
 		fi
 
 		if [ -z "${image_dir}" ]; then
-			if "${ofgwrite_bin}" --help >/dev/null 2>&1; then
-				log "flash preflight ok: backend=ofgwrite binary is callable"
-				log "hint: pass --image-dir <dir> to run no-write preflight"
-				exit 0
+			help_out="$("${ofgwrite_bin}" -h 2>&1 || true)"
+			if [ -z "${help_out}" ]; then
+				help_out="$("${ofgwrite_bin}" --help 2>&1 || true)"
 			fi
-			fail "backend=ofgwrite but '${ofgwrite_bin} --help' failed"
+			case "${help_out}" in
+				*Usage:\ ofgwrite*|*ofgwrite\ Utility*)
+					log "flash preflight ok: backend=ofgwrite binary is callable"
+					log "hint: pass --image-dir <dir> to run no-write preflight"
+					exit 0
+					;;
+			esac
+			fail "backend=ofgwrite but '${ofgwrite_bin}' did not return recognizable help output"
 		fi
 
 		[ -d "${image_dir}" ] || fail "image directory does not exist: ${image_dir}"
