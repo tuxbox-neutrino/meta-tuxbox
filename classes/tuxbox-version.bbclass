@@ -7,6 +7,14 @@
 TUXBOX_IMAGEBUILD ??= "${DATETIME}"
 TUXBOX_IMAGEBUILD[vardepsexclude] = "DATETIME"
 
+# Optional metadata overrides for /etc/image-version.
+TUXBOX_IMAGE_DESCRIPTION ?= "${IMAGE_NAME}"
+TUXBOX_IMAGE_DIR ?= "${@d.getVar('IMAGEDIR') or d.getVar('MACHINE') or ''}"
+TUXBOX_IMAGE_UPDATE_URL ?= "${@d.getVar('IMAGE_LOCATION_URL') or ''}"
+TUXBOX_IMAGE_UPDATE_INFO_FILE ?= "imageversion"
+TUXBOX_IMAGE_FILE_NAME ?= "${IMAGE_NAME}_usb.zip"
+TUXBOX_VERSION_STAMP ?= "${TUXBOX_IMAGEBUILD}"
+
 # Optional explicit git repository for describe/hash resolution.
 # Default auto-detection:
 # 1) parent of COREBASE (tuxbox orchestrator checkout)
@@ -69,12 +77,19 @@ python tuxbox_generate_version_info() {
     os.makedirs(os.path.dirname(version_file), exist_ok=True)
 
     image_name = _safe(d.getVar("IMAGE_NAME"))
+    image_basename = _safe(d.getVar("IMAGE_BASENAME"), image_name)
     machine = _safe(d.getVar("MACHINE"))
+    image_dir = _safe(d.getVar("TUXBOX_IMAGE_DIR"), machine)
     distro = _safe(d.getVar("DISTRO"))
     distro_name = _safe(d.getVar("DISTRO_NAME"))
     distro_version = _safe(d.getVar("DISTRO_VERSION"))
     distro_codename = _safe(d.getVar("DISTRO_CODENAME"))
     image_version = _safe(d.getVar("IMAGE_VERSION"), distro_version)
+    version_stamp = _safe(d.getVar("TUXBOX_VERSION_STAMP"), image_version)
+    image_description = _safe(d.getVar("TUXBOX_IMAGE_DESCRIPTION"), image_name)
+    image_update_url = _safe(d.getVar("TUXBOX_IMAGE_UPDATE_URL"))
+    image_update_info_file = _safe(d.getVar("TUXBOX_IMAGE_UPDATE_INFO_FILE"), "imageversion")
+    image_file_name = _safe(d.getVar("TUXBOX_IMAGE_FILE_NAME"))
     creator = _safe(d.getVar("CREATOR"), "Tuxbox-OS Builder")
     build_date = _safe(d.getVar("TUXBOX_IMAGEBUILD"))
 
@@ -93,12 +108,20 @@ python tuxbox_generate_version_info() {
         ("distro_version", distro_version),
         ("distro_codename", distro_codename),
         ("machine", machine),
+        ("box_model", machine),
+        ("imagedir", image_dir),
+        ("version", version_stamp),
+        ("imagedescription", image_description),
         ("image_name", image_name),
         ("image_version", image_version),
+        ("image_file_name", image_file_name),
+        ("image_update_url", image_update_url),
+        ("image_update_info_file", image_update_info_file),
         ("build_date", build_date),
         ("creator", creator),
         # Compatibility keys expected by older scripts/plugins
         ("builddate", build_date),
+        ("imagename", image_basename),
         ("imageversion", distro_version),
     ]
 
