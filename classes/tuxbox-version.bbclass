@@ -14,6 +14,11 @@ TUXBOX_IMAGE_UPDATE_URL ?= "${@d.getVar('IMAGE_LOCATION_URL') or ''}"
 TUXBOX_IMAGE_UPDATE_INFO_FILE ?= "imageversion"
 TUXBOX_IMAGE_FILE_NAME ?= "${IMAGE_NAME}_usb.zip"
 TUXBOX_VERSION_STAMP ?= "${TUXBOX_IMAGEBUILD}"
+# Compatibility toggle for /.version symlink target:
+# 0 -> /etc/image-version (legacy)
+# 1 -> /etc/os-release
+TUXBOX_VERSION_LINK_OS_RELEASE ?= "0"
+TUXBOX_VERSION_LEGACY_LINK_TARGET ?= "/etc/image-version"
 
 # Optional explicit git repository for describe/hash resolution.
 # Default auto-detection:
@@ -137,10 +142,26 @@ python tuxbox_generate_version_info() {
     os.chmod(version_file, 0o644)
 
     # Keep compatibility with components reading /.version directly.
+    link_to_os_release = _safe(d.getVar("TUXBOX_VERSION_LINK_OS_RELEASE"), "0").lower()
+    use_os_release_link = link_to_os_release in ("1", "y", "yes", "true", "on")
+    legacy_link_target = _safe(
+        d.getVar("TUXBOX_VERSION_LEGACY_LINK_TARGET"),
+        "/etc/image-version",
+    )
+    root_link_target = "/etc/os-release" if use_os_release_link else legacy_link_target
+    if use_os_release_link:
+        os_release_path = os.path.join(rootfs, "etc", "os-release")
+        if not os.path.exists(os_release_path):
+            bb.warn(
+                "tuxbox-version: /etc/os-release missing in rootfs, "
+                "falling back to %s" % legacy_link_target
+            )
+            root_link_target = legacy_link_target
+
     root_version = os.path.join(rootfs, ".version")
     if os.path.lexists(root_version):
         os.unlink(root_version)
-    os.symlink("/etc/image-version", root_version)
+    os.symlink(root_link_target, root_version)
 
     bb.note("Generated %s" % version_file)
 }
