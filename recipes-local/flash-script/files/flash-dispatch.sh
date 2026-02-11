@@ -6,10 +6,14 @@ SCRIPT_HANDLER="${FLASH_BACKEND_SCRIPT_HANDLER:-/usr/libexec/tuxbox/flash-backen
 OFGWRITE_HANDLER="${FLASH_BACKEND_OFGWRITE_HANDLER:-/usr/libexec/tuxbox/flash-backend-ofgwrite.sh}"
 
 backend="script"
+backend_override="${FLASH_BACKEND:-}"
 if [ -f "${BACKEND_CONF}" ]; then
 	# shellcheck disable=SC1091
 	. "${BACKEND_CONF}"
 	backend="${FLASH_BACKEND:-script}"
+fi
+if [ -n "${backend_override}" ]; then
+	backend="${backend_override}"
 fi
 
 case "${backend}" in
