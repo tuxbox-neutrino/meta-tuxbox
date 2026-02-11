@@ -86,6 +86,36 @@ resolve_executable() {
 	return 1
 }
 
+cleanup_stale_ofgwrite_runtime() {
+	for p in /proc/[0-9]*; do
+		exe_path="$(readlink -f "${p}/exe" 2>/dev/null || true)"
+		case "${exe_path}" in
+			/newroot/ofgwrite_bin)
+				kill -9 "${p##*/}" >/dev/null 2>&1 || true
+				;;
+		esac
+	done
+
+	while grep -q " /newroot " /proc/mounts 2>/dev/null; do
+		umount -l /newroot >/dev/null 2>&1 || true
+		sleep 0.2
+	done
+
+	rm -rf /newroot >/dev/null 2>&1 || true
+}
+
+verify_active_slot_runtime_prereqs() {
+	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
+
+	if ! command -v ps >/dev/null 2>&1 || ! ps >/dev/null 2>&1; then
+		fail "active-slot flashing requires a working 'ps' binary on the running image"
+	fi
+
+	if command -v pkill >/dev/null 2>&1 && ! pkill -V >/dev/null 2>&1; then
+		fail "active-slot flashing requires a working 'pkill' binary on the running image"
+	fi
+}
+
 active_slot_from_cmdline() {
 	cmdline="$(cat "${PROC_CMDLINE_FILE}" 2>/dev/null || true)"
 	case "${cmdline}" in
@@ -308,6 +338,8 @@ case "${ACTIVE_SLOT_BACKUP_DIR}" in
 		;;
 esac
 ensure_not_active_slot "${slot}"
+cleanup_stale_ofgwrite_runtime
+verify_active_slot_runtime_prereqs
 
 ofgwrite_force="0"
 if [ -n "${force_arg}" ]; then
