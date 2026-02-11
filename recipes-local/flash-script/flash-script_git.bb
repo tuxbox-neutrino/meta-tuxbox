@@ -9,6 +9,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 IMAGE_FEATURES += " ${PN} "
 
+inherit gitpkgv
+
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
 	file://flash-ofgwrite-preflight.sh \
@@ -23,8 +25,9 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r12"
+PR = "r13"
 PV = "0.1+git${SRCPV}"
+PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
