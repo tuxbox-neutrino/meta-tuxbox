@@ -15,6 +15,10 @@ ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
+TRACE_ENABLE="${FLASH_BACKEND_TRACE_ENABLE:-1}"
+TRACE_FILE="${FLASH_BACKEND_TRACE_FILE:-/var/log/tuxbox/flash-backend-ofgwrite.log}"
+TRACE_MAX_LIST_LINES="${FLASH_BACKEND_TRACE_MAX_LIST_LINES:-40}"
+TRACE_READY="0"
 TARGET_IS_ACTIVE_SLOT="0"
 ACTIVE_SLOT=""
 
@@ -56,7 +60,74 @@ log() {
 	printf '%s\n' "$*"
 }
 
+trace_init() {
+	[ "${TRACE_ENABLE}" = "1" ] || return 0
+	case "${TRACE_FILE}" in
+		/*)
+			;;
+		*)
+			TRACE_ENABLE="0"
+			return 0
+			;;
+	esac
+
+	trace_dir="${TRACE_FILE%/*}"
+	if [ -z "${trace_dir}" ] || [ "${trace_dir}" = "${TRACE_FILE}" ]; then
+		trace_dir="/"
+	fi
+
+	if mkdir -p "${trace_dir}" >/dev/null 2>&1 && touch "${TRACE_FILE}" >/dev/null 2>&1; then
+		TRACE_READY="1"
+	fi
+}
+
+trace() {
+	[ "${TRACE_ENABLE}" = "1" ] || return 0
+	[ "${TRACE_READY}" = "1" ] || return 0
+	ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || true)"
+	printf '%s %s\n' "${ts}" "$*" >>"${TRACE_FILE}" 2>/dev/null || true
+}
+
+trace_runtime_snapshot() {
+	trace "snapshot begin"
+	if [ -r "${PROC_CMDLINE_FILE}" ]; then
+		trace "cmdline=$(tr -d '\n' <"${PROC_CMDLINE_FILE}" 2>/dev/null || true)"
+	fi
+	if [ -r /proc/mounts ]; then
+		grep -E '/newroot|/media/|mmcblk|linuxrootfs| / ' /proc/mounts 2>/dev/null | \
+			while IFS= read -r line; do
+				trace "mount: ${line}"
+			done
+	fi
+	trace "snapshot end"
+}
+
+trace_image_payload() {
+	dir="$1"
+	trace "image payload dir=${dir}"
+	if [ ! -d "${dir}" ]; then
+		trace "image payload dir missing"
+		return 0
+	fi
+
+	ls -la "${dir}" 2>/dev/null | sed -n "1,${TRACE_MAX_LIST_LINES}p" | while IFS= read -r line; do
+		trace "ls: ${line}"
+	done
+
+	if command -v find >/dev/null 2>&1; then
+		find "${dir}" -maxdepth 1 -type f 2>/dev/null | while IFS= read -r file; do
+			size_bytes="$(wc -c <"${file}" 2>/dev/null || true)"
+			md5_value=""
+			if command -v md5sum >/dev/null 2>&1; then
+				md5_value="$(md5sum "${file}" 2>/dev/null | awk '{print $1}' || true)"
+			fi
+			trace "file: $(basename "${file}") size=${size_bytes} md5=${md5_value}"
+		done
+	fi
+}
+
 fail() {
+	trace "ERROR: $*"
 	printf 'ERROR: %s\n' "$*" >&2
 	exit 1
 }
@@ -140,6 +211,7 @@ ensure_not_active_slot() {
 
 	if [ "${target_slot}" = "${ACTIVE_SLOT}" ]; then
 		TARGET_IS_ACTIVE_SLOT="1"
+		trace "target slot ${target_slot} is active slot"
 		[ "${ALLOW_ACTIVE_SLOT}" = "1" ] && return 0
 		fail "refusing to flash active slot ${target_slot} from live system; set FLASH_ALLOW_ACTIVE_SLOT=1 to override"
 	fi
@@ -330,6 +402,7 @@ fi
 
 validate_bool "FLASH_ALLOW_ACTIVE_SLOT" "${ALLOW_ACTIVE_SLOT}"
 validate_bool "FLASH_ACTIVE_SLOT_REQUIRE_BACKUP" "${ACTIVE_SLOT_REQUIRE_BACKUP}"
+validate_bool "FLASH_BACKEND_TRACE_ENABLE" "${TRACE_ENABLE}"
 case "${ACTIVE_SLOT_BACKUP_DIR}" in
 	/*)
 		;;
@@ -337,6 +410,10 @@ case "${ACTIVE_SLOT_BACKUP_DIR}" in
 		fail "FLASH_ACTIVE_SLOT_BACKUP_DIR must be absolute: ${ACTIVE_SLOT_BACKUP_DIR}"
 		;;
 esac
+trace_init
+trace "invocation: slot=${slot} source_mode='${source_mode}' force_arg='${force_arg}'"
+trace "config: allow_active=${ALLOW_ACTIVE_SLOT} require_backup=${ACTIVE_SLOT_REQUIRE_BACKUP} stop_neutrino=${STOP_NEUTRINO_BEFORE_FLASH}"
+trace_runtime_snapshot
 ensure_not_active_slot "${slot}"
 cleanup_stale_ofgwrite_runtime
 verify_active_slot_runtime_prereqs
@@ -372,6 +449,7 @@ case "${source_mode}" in
 esac
 
 machine_from_file="$(maybe_get_machine_from_config)"
+trace "machine from image-version='${machine_from_file}'"
 
 if [ "${mode}" = "local-path" ]; then
 	image_dir="$(resolve_image_dir "${image_base}" "${machine_from_file}")"
@@ -420,13 +498,18 @@ else
 fi
 
 [ -x "${BACKEND_PREFLIGHT_BIN}" ] || fail "preflight command not executable: ${BACKEND_PREFLIGHT_BIN}"
+trace "resolved mode=${mode} image_base='${image_base}' image_dir='${image_dir}'"
+trace_image_payload "${image_dir}"
+trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --ofgwrite-bin ${OFGWRITE_BIN} --image-dir ${image_dir}"
 
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
 stop_frontend_runtime
 run_active_slot_backup
 
 if [ "${ofgwrite_force}" = "1" ]; then
+	trace "exec: ${OFGWRITE_BIN} -f -m ${slot} ${image_dir}"
 	exec "${OFGWRITE_BIN}" -f -m "${slot}" "${image_dir}"
 fi
 
+trace "exec: ${OFGWRITE_BIN} -m ${slot} ${image_dir}"
 exec "${OFGWRITE_BIN}" -m "${slot}" "${image_dir}"
