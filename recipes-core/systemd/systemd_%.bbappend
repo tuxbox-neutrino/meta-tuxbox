@@ -6,7 +6,7 @@ SRC_URI:append = " \
 		file://wait-online-override.conf \
 		"
 
-PR:append = ".4"
+PR:append = ".5"
 
 do_patch[postfuncs] = ""
 

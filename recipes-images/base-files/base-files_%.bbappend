@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-PR:append = ".4"
+PR:append = ".5"
 
 SRC_URI += " \
 		file://backup@.service \

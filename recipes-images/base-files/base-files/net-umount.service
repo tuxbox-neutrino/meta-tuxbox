@@ -3,7 +3,7 @@ Description=Umount Shares At Shutdown
 
 [Service]
 RemainAfterExit=true
-ExecStart=/bin/true
+ExecStart=/bin/sh -c 'true'
 ExecStop=/usr/bin/net-umount.sh
 
 [Install]

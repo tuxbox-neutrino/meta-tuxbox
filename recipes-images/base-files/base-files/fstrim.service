@@ -3,5 +3,4 @@ Description=Runs fstrim on all mounted devices that support TRIM
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c '/sbin/fstrim -a'
-
+ExecStart=/bin/sh -c 'command -v fstrim >/dev/null 2>&1 && fstrim -a || true'
