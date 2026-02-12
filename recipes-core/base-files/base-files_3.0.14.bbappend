@@ -2,7 +2,7 @@
 # meta-tuxbox has BBFILE_PRIORITY=11 (neutrino=10, oe-alliance=7)
 # so we can neutralize their append and apply a minimal, safe tweak set.
 
-PR:append = ".8"
+PR:append = ".9"
 
 # Drop any upstream/prepend/append fragments to avoid the perl snippets
 do_install:append = ""
@@ -20,4 +20,8 @@ do_install:append() {
     mkdir -p ${D}/media/net ${D}/media/hdd
     ln -sf media/hdd ${D}/hdd
     ln -sf media ${D}/mnt
+
+    # systemd v246 expects these mount points during very early boot
+    # (before tmpfiles runs). Missing dirs can freeze boot on API fs setup.
+    mkdir -p ${D}/sys/fs/cgroup/systemd
 }
