@@ -1,12 +1,17 @@
 [Unit]
 Description=Bluetooth Power Switch
-After=bluetooth.target
+After=bluetooth.service dbus.service
+Wants=bluetooth.service
 ConditionVirtualization=no
+ConditionPathExists=/usr/bin/bluetoothctl
+ConditionPathExistsGlob=/sys/class/bluetooth/hci*
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bluetoothctl -- power on
-ExecStop=/usr/bin/bluetoothctl -- power off
+TimeoutStartSec=15
+TimeoutStopSec=10
+ExecStart=-/usr/bin/bluetoothctl --timeout 5 power on
+ExecStop=-/usr/bin/bluetoothctl --timeout 5 power off
 RemainAfterExit=true
 
 [Install]

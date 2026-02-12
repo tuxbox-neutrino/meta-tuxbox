@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-PR:append = ".1"
+PR:append = ".2"
 
 SRC_URI:append = " file://bluetooth-poweron.service"
 
