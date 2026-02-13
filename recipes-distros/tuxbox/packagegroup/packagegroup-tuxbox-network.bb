@@ -4,11 +4,12 @@
 
 DESCRIPTION = "Tuxbox-OS network packages"
 LICENSE = "MIT"
-PR = "r1"
+PR = "r2"
 
 inherit packagegroup
 
 RDEPENDS:${PN} = " \
+    busybox-udhcpc \
     ifupdown \
     openssh \
     openssh-sftp-server \
