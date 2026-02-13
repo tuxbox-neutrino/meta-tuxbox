@@ -11,4 +11,4 @@ Type=oneshot
 TimeoutSec=30
 RemainAfterExit=yes
 EnvironmentFile=-/etc/default/networking
-ExecStart=/bin/sh -c 'if [ "$CONFIGURE_INTERFACES" != "no" ] && [ -n "$(ifquery --read-environment --list --exclude=lo)" ] && [ -x /bin/udevadm ]; then udevadm settle --timeout=15 || true; fi'
+ExecStart=/bin/sh -c 'if [ "$CONFIGURE_INTERFACES" != "no" ] && [ -x /bin/udevadm ]; then if command -v ifquery >/dev/null 2>&1; then _ifaces="$(ifquery --read-environment --list --exclude=lo 2>/dev/null)"; else _ifaces="$(sed -n -e "/^[[:space:]]*auto[[:space:]]\\+/p" /etc/network/interfaces 2>/dev/null | tr " " "\\n" | grep -Ev "^(auto|lo|)$" || true)"; fi; [ -n "$_ifaces" ] && udevadm settle --timeout=15 || true; fi'

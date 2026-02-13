@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Ensure the link is administratively up before DHCP client start.
+# Some boxes report "Network is down" from udhcpc otherwise.
+[ "x$IFACE" = "xlo" ] && exit 0
+[ "x$IFACE" = "x--all" ] && exit 0
+
+ip link show dev "$IFACE" >/dev/null 2>&1 || exit 0
+ip link set dev "$IFACE" up >/dev/null 2>&1 || true
+
+exit 0
