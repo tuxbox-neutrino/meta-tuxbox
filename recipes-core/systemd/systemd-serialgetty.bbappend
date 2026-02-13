@@ -1,4 +1,4 @@
-PR:append = ".1"
+PR:append = ".2"
 
 python __anonymous() {
     import re
@@ -32,6 +32,7 @@ do_install() {
         default_baudrate=$(echo "${SERIAL_CONSOLES}" | sed 's/\;.*//')
         install -d ${D}${systemd_system_unitdir}/
         install -d ${D}${sysconfdir}/systemd/system/getty.target.wants/
+        install -d ${D}${sysconfdir}/systemd/system/multi-user.target.wants/
         install -m 0644 ${WORKDIR}/serial-getty@.service \
             ${D}${systemd_system_unitdir}/
         sed -i -e "s/\@BAUDRATE\@/$default_baudrate/g" \
@@ -46,6 +47,8 @@ do_install() {
             if [ "$baudrate" = "$default_baudrate" ] ; then
                 ln -sf ${systemd_system_unitdir}/serial-getty@.service \
                     ${D}${sysconfdir}/systemd/system/getty.target.wants/serial-getty@$ttydev.service
+                ln -sf ${systemd_system_unitdir}/serial-getty@.service \
+                    ${D}${sysconfdir}/systemd/system/multi-user.target.wants/serial-getty@$ttydev.service
             else
                 install -m 0644 ${WORKDIR}/serial-getty@.service \
                     ${D}${systemd_system_unitdir}/serial-getty$baudrate@.service
@@ -53,6 +56,8 @@ do_install() {
                     ${D}${systemd_system_unitdir}/serial-getty$baudrate@.service
                 ln -sf ${systemd_system_unitdir}/serial-getty$baudrate@.service \
                     ${D}${sysconfdir}/systemd/system/getty.target.wants/serial-getty$baudrate@$ttydev.service
+                ln -sf ${systemd_system_unitdir}/serial-getty$baudrate@.service \
+                    ${D}${sysconfdir}/systemd/system/multi-user.target.wants/serial-getty$baudrate@$ttydev.service
             fi
         done
     fi
