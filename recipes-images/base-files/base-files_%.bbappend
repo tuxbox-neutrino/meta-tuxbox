@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-PR:append = ".5"
+PR:append = ".6"
 
 SRC_URI += " \
 		file://backup@.service \
@@ -46,6 +46,9 @@ do_custom_baseissueinstall() {
 
 do_install:append () {
 	install -d ${D}${localstatedir}/update ${D}${systemd_unitdir}/system/multi-user.target.wants ${D}${bindir} ${D}${sysconfdir}/systemd/system/multi-user.target.wants
+	# Ensure API filesystem mountpoints exist in flashed target slots.
+	install -d ${D}/proc ${D}/sys/fs/cgroup/systemd ${D}/dev ${D}/run ${D}/tmp
+	chmod 1777 ${D}/tmp
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
 		install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}/modules-load.d ${D}${sysconfdir}/profile.d
 		install -d ${D}${sysconfdir}/firstboot.d ${D}${sysconfdir}/local.d
