@@ -1,14 +1,14 @@
 [Unit]
 Description=Helper to synchronize boot up for ifupdown
 DefaultDependencies=no
+ConditionPathExists=/etc/network/interfaces
 Wants=systemd-udevd.service
 After=systemd-udev-trigger.service
 Before=network.target
 
 [Service]
 Type=oneshot
-TimeoutSec=180
+TimeoutSec=30
 RemainAfterExit=yes
 EnvironmentFile=-/etc/default/networking
-ExecStart=/bin/sh -c 'if [ "$CONFIGURE_INTERFACES" != "no" ] && [ -n "$(ifquery --read-environment --list --exclude=lo)" ] && [ -x /bin/udevadm ]; then udevadm settle; fi'
-
+ExecStart=/bin/sh -c 'if [ "$CONFIGURE_INTERFACES" != "no" ] && [ -n "$(ifquery --read-environment --list --exclude=lo)" ] && [ -x /bin/udevadm ]; then udevadm settle --timeout=15 || true; fi'

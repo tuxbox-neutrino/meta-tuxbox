@@ -6,7 +6,7 @@ SRC_URI:append = " file://interfaces \
 		   file://ifupdown-pre.service \
 "
 
-PR:append = ".1"
+PR:append = ".2"
 
 do_install:append() {
 	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/ ${D}${sysconfdir}/network ${D}${sysconfdir}/default
