@@ -60,6 +60,12 @@ IMAGE_INSTALL:append = " \
     procps \
 "
 
+# Flash/update tooling must be part of the base image.
+IMAGE_INSTALL:append = " \
+    flash-script \
+    ${@bb.utils.contains('TUXBOX_FLASH_MACHINE_CAP_OFGWRITE', '1', 'ofgwrite', '', d)} \
+"
+
 # Networking
 IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-network \
