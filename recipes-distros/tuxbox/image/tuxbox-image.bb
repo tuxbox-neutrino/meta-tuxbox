@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r10"
+PR = "r11"
 
 # Legacy image targets (aliases for compatibility)
 PROVIDES += "neutrino-image noneutrino-image"
@@ -36,8 +36,10 @@ rootfs_preprocess_resolvconf() {
 }
 ROOTFS_PREPROCESS_COMMAND += " rootfs_preprocess_resolvconf;"
 
-# Avoid non-deterministic task signatures when IMAGE_NAME includes DATETIME.
-do_image_hdfastboot8gb[vardepsexclude] += " IMAGE_NAME TIME"
+# Keep hdfastboot8gb signatures stable across day/time changes.
+# The gfutures image command appends DATE/IMAGE_NAME into generated artifacts.
+do_image_hdfastboot8gb[vardepsexclude] = "DATE DATETIME TIME IMAGE_NAME"
+IMAGE_CMD:hdfastboot8gb[vardepsexclude] = "DATE DATETIME TIME IMAGE_NAME"
 
 # Ensure splash.bin is deployed before emmcimg packaging runs.
 do_image_emmcimg[depends] += "tuxbox-bootlogo:do_deploy"
