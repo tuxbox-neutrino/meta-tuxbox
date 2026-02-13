@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r11"
+PR = "r12"
 
 # Legacy image targets (aliases for compatibility)
 PROVIDES += "neutrino-image noneutrino-image"
@@ -40,6 +40,13 @@ ROOTFS_PREPROCESS_COMMAND += " rootfs_preprocess_resolvconf;"
 # The gfutures image command appends DATE/IMAGE_NAME into generated artifacts.
 do_image_hdfastboot8gb[vardepsexclude] = "DATE DATETIME TIME IMAGE_NAME"
 IMAGE_CMD:hdfastboot8gb[vardepsexclude] = "DATE DATETIME TIME IMAGE_NAME"
+
+# gfutures hdfastboot8gb packaging copies deploy artifacts from machine
+# partition/bootargs/recovery recipes. Ensure those deploy tasks have run first.
+GFUTURES_HDFB_DEPENDS = "${@('gfutures-partitions-%s:do_deploy '\
+'gfutures-bootargs-%s:do_deploy '\
+'gfutures-recovery-%s:do_deploy') % (d.getVar('MACHINE'), d.getVar('MACHINE'), d.getVar('MACHINE')) if d.getVar('MACHINE') in ('hd60', 'hd61', 'hd66se') else ''}"
+do_image_hdfastboot8gb[depends] += " ${GFUTURES_HDFB_DEPENDS}"
 
 # Ensure splash.bin is deployed before emmcimg packaging runs.
 do_image_emmcimg[depends] += "tuxbox-bootlogo:do_deploy"
