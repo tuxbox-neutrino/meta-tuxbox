@@ -1,0 +1,37 @@
+From 3a4fca9ce480f8cfdcf0f02813f2a5fb0ad42d95 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Tue, 17 Feb 2026 20:05:00 +0100
+Subject: [PATCH] software: detect opkg correctly on OE systems
+
+On OpenEmbedded systems, opkg is typically in /usr/bin or /bin.
+The current logic only checks /opt/bin/opkg and returns false,
+which makes Webmin fall back to the legacy ipkg command.
+
+Prefer opkg when it is available in PATH or common locations.
+
+Upstream-Status: Inappropriate [distribution-specific defaults]
+Signed-off-by: developers <developers@tuxbox-neutrino.org>
+---
+ software/ipkg-lib.pl | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/software/ipkg-lib.pl b/software/ipkg-lib.pl
+index 507f3ad4..2b4a7f36 100644
+--- a/software/ipkg-lib.pl
++++ b/software/ipkg-lib.pl
+@@ -17,7 +17,12 @@ if (&use_pkg_ng()) {
+ 
+ sub use_pkg_ng
+ {
+-return 0 if (-x "/opt/bin/opkg");
++return 1 if (&has_command("opkg"));
++return 1 if (-x "/usr/bin/opkg");
++return 1 if (-x "/bin/opkg");
++return 1 if (-x "/opt/bin/opkg");
++
++return 0;
+ }
+ 
+ 
+-- 
+2.43.0
