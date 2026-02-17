@@ -3,7 +3,7 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
 DEPENDS = "libusb1 libusb-compat gd ncurses readline jpeg dbus-glib sqlite3"
-RDEPENDS_${PN} = "jpeg samsunglcd4linux"
+RDEPENDS:${PN} = "jpeg samsunglcd4linux"
 
 SRC_URI = "git://github.com/TangoCash/lcd4linux.git;protocol=https;branch=master \
 	file://lcd4linux.service \
@@ -17,6 +17,7 @@ include lcd4linux.inc
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
+PR = "r4"
 S =  "${WORKDIR}/git"
 
 addtask setlibtool before do_configure after do_patch
@@ -33,7 +34,7 @@ do_setlibtool_aarch64 (){
     perl -pi -e "s#LIBTOOL=libtool#LIBTOOL=\${STAGING_BINDIR_CROSS}\/aarch64-oe-linux-libtool#" ${S}/Makefile.am
 }
 
-EXTRE_OECONF += "\
+EXTRA_OECONF += "\
     --with-ncurses=${STAGING_LIBDIR}/..\
     --with-drivers='DPF,SamsungSPF,VUSOLO4K,PNG' \
     --with-plugins='all,!dbus,!mpris_dbus,!asterisk,!isdn,!pop3,!ppp,!seti,!huawei,!imon,!kvv,!sample,!w1retap,!wireless,!xmms,!gps,!mpd,!mysql,!qnaplog,!iconv,!apm,!raspi,!dvb,!hddtemp,!python' \
@@ -44,13 +45,13 @@ LDFLAGS:append = " -lcurses"
 
 inherit autotools systemd gettext pkgconfig
 
-SYSTEMD_SERVICE_${PN} = "lcd4linux.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "disable"
+SYSTEMD_SERVICE:${PN} = "lcd4linux.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 
 do_install:append() {
-    install -d ${D}${systemd_unitdir}/system
-    install -m 0755 ${WORKDIR}/lcd4linux.service ${D}${systemd_unitdir}/system
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/lcd4linux.service ${D}${systemd_system_unitdir}/lcd4linux.service
     rm -rf ${D}${sysconfdir}
 }
 
-FILES_${PN} += "/usr"
+FILES:${PN} += "/usr"
