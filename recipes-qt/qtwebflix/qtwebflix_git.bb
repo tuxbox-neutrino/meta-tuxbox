@@ -2,7 +2,7 @@ SUMMARY = "QtWebflix"
 DESCRIPTION = "A viewer for netflix, amazon prime and similar"
 LICENSE = "GPL-3.0"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=84dcc94da3adb52b53ae4fa38fe49e5d"
-PR = "r1"
+PR = "r2"
 
 DEPENDS = "qtwebengine qtwidevine"
 RDEPENDS:${PN} = "qtwidevine qtwebengine qtflashplayer libnss-mdns"
@@ -29,7 +29,8 @@ SRC_URI = "git://github.com/gort818/qtwebflix.git;protocol=https;name=qtwebflix;
 
 S = "${WORKDIR}/git"
 
-inherit qmake5 systemd
+inherit qmake5 systemd features_check
+REQUIRED_DISTRO_FEATURES = "qt5"
 
 SYSTEMD_SERVICE:${PN} = "qtwebflix.service browser.service ardmediathek.service \
 	zdfmediathek.service artemediathek.service 3satmediathek.service \
