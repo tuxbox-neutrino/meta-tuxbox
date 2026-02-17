@@ -1,5 +1,4 @@
-
-#! /bin/sh
+#!/bin/sh
 #
 # This is an init script for Tor on Openzaurus
 #
@@ -10,22 +9,22 @@ test -f /etc/tor/tor-tsocks.conf || exit 0
 
 case "$1" in
   start)
-    echo -n "Starting tor daemon"
+    printf '%s' "Starting tor daemon"
     start-stop-daemon --start --quiet --exec /usr/bin/tor > /dev/null &
-    echo "."
+    printf '%s\n' "."
     ;;
   stop)
-    echo -n "Stopping tor daemon"
+    printf '%s' "Stopping tor daemon"
     start-stop-daemon --stop --quiet --exec /usr/bin/tor > /dev/null &
-    echo "."
+    printf '%s\n' "."
     ;;
   restart)
-    echo -n "Stopping tor daemon"
+    printf '%s' "Stopping tor daemon"
     start-stop-daemon --stop --quiet --exec /usr/bin/tor > /dev/null &
     sleep 1
-    echo -n "Starting tor daemon"
+    printf '%s' "Starting tor daemon"
     start-stop-daemon --start --quiet --exec /usr/bin/tor > /dev/null &
-    echo "."
+    printf '%s\n' "."
     ;;
   start_socats)
     echo "Starting socats"
