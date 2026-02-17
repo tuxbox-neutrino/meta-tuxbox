@@ -1,7 +1,3 @@
-SRC_URI:append = " \
-	file://0001-software-ipkg-lib-detect-opkg-correctly.patch \
-"
-
 WEBMIN_PORT ?= "10000"
 WEBMIN_PORT:qemux86-64 = "10001"
 
