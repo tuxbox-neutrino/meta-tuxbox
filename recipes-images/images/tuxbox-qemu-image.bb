@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r9"
+PR = "r10"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-qemu-image"
@@ -44,6 +44,18 @@ IMAGE_INSTALL:append = " \
     procps \
     iputils-ping \
 "
+
+# Avoid double-start races in QEMU: the classic neutrino.service wrapper can
+# trigger a system poweroff on rc=1, while the QEMU X11 launcher already starts
+# Neutrino explicitly.
+#
+# Use IMAGE_PREPROCESS_COMMAND instead of ROOTFS_POSTPROCESS_COMMAND because
+# systemd_preset_all in do_image can recreate service symlinks.
+IMAGE_PREPROCESS_COMMAND:append = " tuxbox_qemu_disable_neutrino_autostart;"
+
+tuxbox_qemu_disable_neutrino_autostart () {
+    rm -f ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/multi-user.target.wants/neutrino.service
+}
 
 # Produce wic artifacts for runqemu (ext4 is already enabled by qemu machines).
 IMAGE_FSTYPES:append = " wic"
