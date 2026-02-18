@@ -1,7 +1,9 @@
 WEBMIN_PORT ?= "10000"
 WEBMIN_PORT:qemux86-64 = "10001"
 
-PR:append = ".2"
+PR:append = ".3"
+
+RRECOMMENDS:${PN}:append = " packagegroup-tuxbox-webmin-minimal"
 
 do_install:append() {
 	if [ -f ${D}${sysconfdir}/webmin/miniserv.conf ]; then
