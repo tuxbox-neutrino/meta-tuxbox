@@ -50,6 +50,7 @@ IMAGE_INSTALL:append = " \
     nano \
     vim-tiny \
     curl \
+    cronie \
     wget \
     openssh \
     opkg \
