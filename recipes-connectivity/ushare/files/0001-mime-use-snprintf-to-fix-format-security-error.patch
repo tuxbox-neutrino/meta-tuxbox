@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Wed, 18 Feb 2026 21:30:00 +0100
+Subject: [PATCH] mime: use snprintf to fix format-security error
+
+The legacy code used sprintf with a non-literal format string:
+
+  sprintf(protocol, mime->mime_protocol);
+
+With modern hardening flags this is rejected by -Werror=format-security.
+Build the protocol string via snprintf using a literal format and append
+the trailing '*' in the same call.
+---
+--- a/src/mime.c
++++ b/src/mime.c
+@@ -21,6 +21,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdio.h>
+ 
+ #include "mime.h"
+ #include "ushare.h"
+@@ -144,7 +145,6 @@
+   if (!mime)
+     return NULL;
+ 
+-  sprintf (protocol, mime->mime_protocol);
+-  strcat (protocol, "*");
++  snprintf (protocol, sizeof (protocol), "%s*", mime->mime_protocol);
+   return strdup (protocol);
+ }
+-- 
+2.39.5
+
