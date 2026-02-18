@@ -4,7 +4,7 @@
 
 DESCRIPTION = "Tuxbox-OS minimal Webmin package set for STB devices"
 LICENSE = "MIT"
-PR = "r0"
+PR = "r1"
 
 inherit packagegroup
 
@@ -16,6 +16,7 @@ RDEPENDS:${PN} = " \
     webmin-module-software \
     webmin-module-logviewer \
     webmin-module-filemin \
+    webmin-module-mount \
     webmin-module-net \
     webmin-module-updown \
     webmin-module-time \
