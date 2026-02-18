@@ -14,6 +14,37 @@ TUXBOX_WIFI ?= "1"
 # Set TUXBOX_COMMUNITY_PARITY = "1" to enable in local.conf.user.inc.
 TUXBOX_COMMUNITY_PARITY ?= "0"
 
+# Optional build-only prebuild for community parity tools.
+# Set TUXBOX_PREBUILD_COMMUNITY_PARITY = "1" to build optional recipes for
+# feeds without installing them into the image.
+TUXBOX_PREBUILD_COMMUNITY_PARITY ?= "0"
+
+# Build-only recipe list for parity tooling (not installed by default).
+TUXBOX_COMMUNITY_PARITY_EXTRA_RECIPES = " \
+    autofs \
+    dvb-apps \
+    dvbsnoop \
+    evtest \
+    f2fs-tools \
+    gptfdisk \
+    hd-idle \
+    iperf3 \
+    links \
+    mc \
+    minicom \
+    minidlna \
+    minisatip \
+    openvpn \
+    smartmontools \
+    streamripper \
+    sysstat \
+    udpxy \
+    ushare \
+    vsftpd \
+    xfsprogs \
+    xupnpd \
+"
+
 # Image features
 IMAGE_FEATURES += " \
     package-management \
@@ -26,6 +57,7 @@ IMAGE_FEATURES += " \
 IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-base \
     packagegroup-tuxbox-neutrino \
+    packagegroup-tuxbox-tools-core \
     ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi', '', d)} \
     ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi-drivers', '', d)} \
     ${@bb.utils.contains('TUXBOX_COMMUNITY_PARITY', '1', 'packagegroup-tuxbox-community-parity', '', d)} \
@@ -43,20 +75,7 @@ IMAGE_INSTALL:append = " \
 
 # System tools
 IMAGE_INSTALL:append = " \
-    bash \
-    htop \
-    nano \
     vim-tiny \
-    curl \
-    cronie \
-    wget \
-    openssh \
-    opkg \
-    tuxbox-feed-config \
-    less \
-    findutils \
-    grep \
-    procps \
 "
 
 # Flash/update tooling must be part of the base image.
@@ -72,14 +91,12 @@ IMAGE_INSTALL:append = " \
 
 # Filesystem support
 IMAGE_INSTALL:append = " \
-    e2fsprogs \
-    e2fsprogs-mke2fs \
-    e2fsprogs-tune2fs \
-    dosfstools \
     ntfs-3g-ntfsprogs \
     exfat-utils \
-    parted \
 "
+
+# Build optional parity tools for feeds without installing them in the image.
+EXTRA_IMAGEDEPENDS += "${@bb.utils.contains('TUXBOX_PREBUILD_COMMUNITY_PARITY', '1', d.getVar('TUXBOX_COMMUNITY_PARITY_EXTRA_RECIPES'), '', d)}"
 
 # Version file generation
 inherit tuxbox-version
