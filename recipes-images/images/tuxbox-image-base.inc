@@ -308,6 +308,7 @@ EXTRA_IMAGEDEPENDS = " \
 	samba \
 	sysstat \
 	webmin \
+	packagegroup-tuxbox-webmin-minimal \
 	\
 	browser \
 	dropbear \
