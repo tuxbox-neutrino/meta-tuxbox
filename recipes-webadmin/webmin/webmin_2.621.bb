@@ -3,7 +3,7 @@ HOMEPAGE = "https://webmin.com/"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=0a6446108c96d0819d21e40b48109507"
 
-PR = "r3"
+PR = "r4"
 
 SRC_URI = "https://github.com/webmin/webmin/releases/download/${PV}/webmin-${PV}.tar.gz \
            file://setup.sh \
@@ -124,6 +124,16 @@ do_install() {
         -e "s#'../web-lib-funcs.pl'#'./web-lib-funcs.pl'#g" \
         -e "s#'web-lib-funcs.pl'#'./web-lib-funcs.pl'#g" \
         ${D}${libexecdir}/webmin/web-lib.pl
+    # Guard Authentic Theme sysinfo parsing against scalar placeholders
+    # returned by older/incomplete data collectors.
+    perl -0777 -i -pe 's/\$info->\{'"'"'type'"'"'\} ne '"'"'warning'"'"'\s*\&\&\s*\$a->\{'"'"'type'"'"'\} ne '"'"'warning'"'"'\s*\&\&\s*\$b->\{'"'"'type'"'"'\} ne '"'"'warning'"'"'/\$info->{'"'"'type'"'"'} ne '"'"'warning'"'"'/g' \
+        ${D}${libexecdir}/webmin/authentic-theme/authentic-lib.pl
+    perl -i -pe "s/foreach my \\$info \\(\\@\\{\\$info_ref\\}\\) \\{/foreach my \\$info (\\@{\\$info_ref}) {\\n            next if (ref(\\$info) ne 'HASH');/" \
+        ${D}${libexecdir}/webmin/authentic-theme/authentic-lib.pl
+    perl -i -pe 's/\@info = grep \{\$_->\{'"'"'id'"'"'\} eq '"'"'sysinfo'"'"'\} \@info;/\@info = grep { ref(\$_) eq '"'"'HASH'"'"' \&\& \$_->{'"'"'id'"'"'} eq '"'"'sysinfo'"'"' } \@info;/' \
+        ${D}${libexecdir}/webmin/authentic-theme/authentic-lib.pl
+    perl -i -pe 's/my \$sysinfo = grep \{ \$_->\{'"'"'id'"'"'\} eq '"'"'sysinfo'"'"' \} \@info;/my \$sysinfo = grep { ref(\$_) eq '"'"'HASH'"'"' \&\& \$_->{'"'"'id'"'"'} eq '"'"'sysinfo'"'"' } \@info;/' \
+        ${D}${libexecdir}/webmin/authentic-theme/sysinfo.cgi
 
     # Prefer the modern authentic theme by default.
     if [ -f ${D}${sysconfdir}/webmin/config ]; then
