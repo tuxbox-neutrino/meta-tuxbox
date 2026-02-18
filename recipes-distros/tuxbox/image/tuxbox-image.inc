@@ -112,6 +112,7 @@ tuxbox_rootfs_postprocess() {
     install -d ${IMAGE_ROOTFS}/media/usb
     install -d ${IMAGE_ROOTFS}/media/hdd
     install -d ${IMAGE_ROOTFS}/mnt
+    install -d ${IMAGE_ROOTFS}/mnt/nfs
 
     # Set permissions
     chmod 755 ${IMAGE_ROOTFS}/media
