@@ -31,13 +31,6 @@ IMAGE_INSTALL:append = " \
     ${@bb.utils.contains('TUXBOX_COMMUNITY_PARITY', '1', 'packagegroup-tuxbox-community-parity', '', d)} \
 "
 
-# Neutrino core stack
-IMAGE_INSTALL:append = " \
-    neutrino \
-    libstb-hal \
-    neutrino-plugins \
-"
-
 # Multimedia stack
 IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-multimedia \
