@@ -1,7 +1,7 @@
 WEBMIN_PORT ?= "10000"
 WEBMIN_PORT:qemux86-64 = "10001"
 
-PR:append = ".3"
+PR:append = ".4"
 
 RRECOMMENDS:${PN}:append = " packagegroup-tuxbox-webmin-minimal"
 
@@ -27,5 +27,11 @@ do_install:append() {
 			${D}${sysconfdir}/webmin/software/config
 		echo "package_system=ipkg" >> ${D}${sysconfdir}/webmin/software/config
 		echo "update_system=ipkg" >> ${D}${sysconfdir}/webmin/software/config
+	fi
+
+	# Cronie uses /etc/cron/crontabs in this distro setup.
+	if [ -f ${D}${sysconfdir}/webmin/cron/config ]; then
+		sed -i -e '/^cron_dir=/d' ${D}${sysconfdir}/webmin/cron/config
+		echo "cron_dir=${sysconfdir}/cron/crontabs" >> ${D}${sysconfdir}/webmin/cron/config
 	fi
 }
