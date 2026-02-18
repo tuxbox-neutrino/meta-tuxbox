@@ -10,6 +10,10 @@ LICENSE = "MIT"
 # Set TUXBOX_WIFI = "0" to disable in local.conf.user.inc.
 TUXBOX_WIFI ?= "1"
 
+# Optional parity set for common community image defaults.
+# Set TUXBOX_COMMUNITY_PARITY = "1" to enable in local.conf.user.inc.
+TUXBOX_COMMUNITY_PARITY ?= "0"
+
 # Image features
 IMAGE_FEATURES += " \
     package-management \
@@ -24,6 +28,7 @@ IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-neutrino \
     ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi', '', d)} \
     ${@bb.utils.contains('TUXBOX_WIFI', '1', 'packagegroup-tuxbox-wifi-drivers', '', d)} \
+    ${@bb.utils.contains('TUXBOX_COMMUNITY_PARITY', '1', 'packagegroup-tuxbox-community-parity', '', d)} \
 "
 
 # Neutrino core stack

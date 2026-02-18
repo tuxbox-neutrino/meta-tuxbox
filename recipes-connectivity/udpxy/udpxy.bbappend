@@ -2,7 +2,12 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 inherit systemd
 
-PR:append = ".1"
+PR:append = ".2"
+
+SRC_URI:append = " \
+    file://udpxy.default \
+    file://udpxy.service \
+"
 
 SYSTEMD_SERVICE:${PN} = "udpxy.service"
 
