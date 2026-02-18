@@ -3,7 +3,7 @@ HOMEPAGE = "https://webmin.com/"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=0a6446108c96d0819d21e40b48109507"
 
-PR = "r1"
+PR = "r3"
 
 SRC_URI = "https://github.com/webmin/webmin/releases/download/${PV}/webmin-${PV}.tar.gz \
            file://setup.sh \
@@ -111,6 +111,25 @@ do_install() {
 
     # Ensure correct PERLLIB path
     sed -i -e 's#${D}##g' ${D}${sysconfdir}/webmin/start
+
+    # WebminCore and web-lib rely on relative do() calls. Ensure a stable
+    # working directory for miniserv and keep include paths Perl>=5.26-safe.
+    sed -i -e '/^export PERLLIB/a cd ${libexecdir}/webmin' \
+        ${D}${sysconfdir}/webmin/start
+    sed -i \
+        -e 's#do "web-lib.pl";#do "./web-lib.pl";#' \
+        -e 's#do "ui-lib.pl";#do "./ui-lib.pl";#' \
+        ${D}${libexecdir}/webmin/WebminCore.pm
+    sed -i \
+        -e "s#'../web-lib-funcs.pl'#'./web-lib-funcs.pl'#g" \
+        -e "s#'web-lib-funcs.pl'#'./web-lib-funcs.pl'#g" \
+        ${D}${libexecdir}/webmin/web-lib.pl
+
+    # Prefer the modern authentic theme by default.
+    if [ -f ${D}${sysconfdir}/webmin/config ]; then
+        sed -i -e '/^theme=/d' ${D}${sysconfdir}/webmin/config
+        echo "theme=authentic-theme" >> ${D}${sysconfdir}/webmin/config
+    fi
 }
 
 INITSCRIPT_NAME = "webmin"
@@ -124,9 +143,12 @@ RDEPENDS:${PN} += "perl perl-module-socket perl-module-exporter perl-module-expo
 RDEPENDS:${PN} += "perl-module-warnings perl-module-xsloader perl-module-posix perl-module-autoloader"
 RDEPENDS:${PN} += "perl-module-fcntl perl-module-tie-hash perl-module-vars perl-module-time-local perl-module-config perl-module-constant"
 RDEPENDS:${PN} += "perl-module-file-glob perl-module-file-copy perl-module-sdbm-file perl-module-feature"
+RDEPENDS:${PN} += "perl-module-lib perl-module-io-handle"
 
 PACKAGES_DYNAMIC += "webmin-module-* webmin-theme-*"
 RRECOMMENDS:${PN} += "webmin-module-system-status"
+RRECOMMENDS:${PN} += "webmin-theme-authentic-theme"
+RDEPENDS:webmin-theme-authentic-theme += "perl-modules"
 
 PACKAGES += "${PN}-module-proc ${PN}-module-raid ${PN}-module-exports ${PN}-module-fdisk ${PN}-module-lvm"
 RDEPENDS:${PN}-module-proc = "procps"
