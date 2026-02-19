@@ -3,7 +3,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://doc/us/license.html;beginline=61;endline=105;md5=e883421fc699b0af5d55b94af3d817cf"
 HOMEPAGE = "https://www.github.com/tomasguisasola"
 DEPENDS += "expat virtual/lua"
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 
 include ../lua.inc
 
@@ -24,17 +24,17 @@ do_configure:prepend () {
         sed -i "s|-lexpat|${LDFLAGS}|" ${S}/makefile
 }
 
-FILES_${PN} = "/usr/share \
+FILES:${PN} = "/usr/share \
 	       /usr/lib\
 "
 
-FILES_${PN}-dbg += "/usr/lib/lua/${LUA_VER}/.debug/*.so"
+FILES:${PN}-dbg += "/usr/lib/lua/${LUA_VER}/.debug/*.so"
 
 EXTRA_OEMAKE = " \
 		LUA_DIR=${D}/usr/share/lua/${LUA_VER} \
 		LUA_LIBDIR=${D}/usr/lib/lua/${LUA_VER} \
 "
 
-INSANE_SKIP_${PN} = "dev-so"
+INSANE_SKIP:${PN} = "dev-so"
 
 BBCLASSEXTEND = "native nativesdk"

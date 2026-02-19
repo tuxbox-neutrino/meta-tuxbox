@@ -1,11 +1,11 @@
 DESCRIPTION = "lua-feedparser"
-LICENSE = "BSD"
+LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=b8e3c7d92765c11f200410b0e53c8bdb"
 HOMEPAGE = "https://github.com/slact/lua-feedparser"
 
 include ../lua.inc
 
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 SRCREV = "9b284bc014ea6adbbd847b16ba64dadd40724fac"
 PR = "r1"
 
@@ -22,7 +22,6 @@ EXTRA_OEMAKE += "LUA_VER=${LUA_VER} DESTDIR=${D}"
 
 inherit autotools-brokensep
 
-FILES_${PN} += "/usr/share"
+FILES:${PN} += "/usr/share"
 
 BBCLASSEXTEND = "native nativesdk"
-

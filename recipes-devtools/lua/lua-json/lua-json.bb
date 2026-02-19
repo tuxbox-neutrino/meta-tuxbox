@@ -17,7 +17,7 @@ SRC_URI[sha256sum] = "d536afcef0904370ad6d202758bc1b2b9b0debd19a4c7fa0402030cd1e
 
 S = "${WORKDIR}"
 
-FILES_${PN} += "/usr/share/lua/${LUA_VER}"
+FILES:${PN} += "/usr/share/lua/${LUA_VER}"
 # no need for -dev and -dbg..
 PACKAGES = "${PN}"
 
