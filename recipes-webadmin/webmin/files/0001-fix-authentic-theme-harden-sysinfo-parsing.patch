@@ -1,0 +1,57 @@
+From 28812045e14eac47e280f3ac68fd7e4bace655d1 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Sun, 22 Feb 2026 14:37:17 +0100
+Subject: [PATCH] fix (authentic-theme): harden sysinfo parsing
+
+Guard sysinfo parsing against scalar placeholders and drop bogus warning
+comparisons in extended sysinfo handling.
+
+This consolidates the local Webmin Authentic Theme runtime hardening into a
+source patch suitable for recipe backporting.
+---
+ authentic-theme/authentic-lib.pl | 7 +++----
+ authentic-theme/sysinfo.cgi      | 2 +-
+ 2 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/authentic-theme/authentic-lib.pl b/authentic-theme/authentic-lib.pl
+index 9bc61418..ae8df1b3 100644
+--- a/authentic-theme/authentic-lib.pl
++++ b/authentic-theme/authentic-lib.pl
+@@ -80,13 +80,12 @@ sub get_extended_sysinfo
+         $returned_sysinfo .=
+           '<div class="panel-group ui-sortable" id="extended_sysinfo' . $x . '" role="tablist" aria-multiselectable="true">';
+         foreach my $info (@{$info_ref}) {
++            next if (ref($info) ne 'HASH');
+             if ($info->{'id'} ne 'notifications' &&
+                 $info->{'type'} ne 'link'            &&
+                 $info->{'module'} ne 'mailbox'       &&
+                 $info->{'module'} ne 'system-status' &&
+-                $info->{'type'} ne 'warning'         &&
+-                $a->{'type'} ne 'warning'            &&
+-                $b->{'type'} ne 'warning')
++                $info->{'type'} ne 'warning')
+             {
+                 our $charts_not_supported = 'no';
+                 if ($info->{'type'} eq 'chart') {
+@@ -630,7 +629,7 @@ sub get_sysinfo_vars
+     } else {
+         @info = theme_list_combined_system_info();
+     }
+-    @info = grep {$_->{'id'} eq 'sysinfo'} @info;
++    @info = grep { ref($_) eq 'HASH' && $_->{'id'} eq 'sysinfo' } @info;
+ 
+     # Define used vars
+     my ($cpu_percent,
+diff --git a/authentic-theme/sysinfo.cgi b/authentic-theme/sysinfo.cgi
+index ad1bf2ca..ca17e42e 100755
+--- a/authentic-theme/sysinfo.cgi
++++ b/authentic-theme/sysinfo.cgi
+@@ -65,7 +65,7 @@ my ($cpu_percent,
+ ) = get_sysinfo_vars(\@info);
+ 
+ if ($get_user_level ne '3') {
+-    my $sysinfo = grep { $_->{'id'} eq 'sysinfo' } @info;
++    my $sysinfo = grep { ref($_) eq 'HASH' && $_->{'id'} eq 'sysinfo' } @info;
+     my @table_data;
+ 
+     # Hostname
