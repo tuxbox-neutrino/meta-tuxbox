@@ -1,0 +1,42 @@
+From 22c73c09f1536fe6fc020d51515f44fe9f8f0d83 Mon Sep 17 00:00:00 2001
+From: Codex <codex@local>
+Date: Sun, 15 Feb 2026 00:00:00 +0000
+Subject: [PATCH] arm: reboot: avoid returning from machine_power_off
+
+On hd60 (Hi3798) there is no registered pm_power_off callback in the
+current kernel configuration, so machine_power_off() can return back to
+userspace. With systemd as PID 1 this may end in:
+
+  Kernel panic - not syncing: Attempted to kill init!
+
+Do not return from machine_power_off(). If power-off is unavailable or
+fails, fall back to a hard restart path.
+---
+--- a/arch/arm/kernel/reboot.c
++++ b/arch/arm/kernel/reboot.c
+@@ -121,8 +121,22 @@
+ 	local_irq_disable();
+ 	smp_send_stop();
+ 
+-	if (pm_power_off)
++	if (pm_power_off) {
++		pr_emerg("Calling poweroff handler %pS\n", pm_power_off);
+ 		pm_power_off();
++		pr_emerg("Poweroff handler %pS returned; halting CPUs\n", pm_power_off);
++		mdelay(2000);
++		machine_halt();
++	} else {
++		pr_emerg("No poweroff handler registered; forcing restart\n");
++	}
++
++	reboot_mode = REBOOT_HARD;
++	machine_restart(NULL);
++
++	/* machine_restart() should not return. */
++	while (1)
++		;
+ }
+ 
+ #ifdef CONFIG_ARM_FLUSH_CONSOLE_ON_RESTART
+-- 
+2.43.0

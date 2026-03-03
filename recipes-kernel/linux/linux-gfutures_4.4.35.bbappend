@@ -1,4 +1,5 @@
 FILESEXTRAPATHS:prepend := "${OEA-META-GFUTURES-BASE}/recipes-linux/linux-gfutures-${PV}/${MACHINE}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/linux-gfutures:"
 
 # linux-gfutures_4.4.35 keeps defconfigs under per-machine subdirs; make them visible.
 
@@ -14,4 +15,6 @@ do_configure:prepend:hd60() {
     fi
 }
 
-PR:append = ".3"
+SRC_URI:append = " file://0008-arm-machine-power-off-fallback-to-restart.patch"
+
+PR:append = ".6"
