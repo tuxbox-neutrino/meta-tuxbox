@@ -4,7 +4,7 @@
 
 DESCRIPTION = "Tuxbox-OS network packages"
 LICENSE = "MIT"
-PR = "r2"
+PR = "r3"
 
 inherit packagegroup
 
@@ -13,6 +13,7 @@ RDEPENDS:${PN} = " \
     ifupdown \
     openssh \
     openssh-sftp-server \
+    satipclient \
     samba \
     nfs-utils \
     nfs-utils-client \
