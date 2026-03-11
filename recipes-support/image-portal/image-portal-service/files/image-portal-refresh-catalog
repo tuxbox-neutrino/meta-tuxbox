@@ -1,0 +1,47 @@
+#!/bin/sh
+set -eu
+
+CONFIG_FILE=/etc/image-portal.conf
+if [ -r "$CONFIG_FILE" ]; then
+    # shellcheck disable=SC1091
+    . "$CONFIG_FILE"
+fi
+
+FEED_ROOT=${FEED_ROOT:-/srv/tuxbox/feed}
+ARTIFACT_BASE_URL=${ARTIFACT_BASE_URL:-}
+CATALOG_FILE=${CATALOG_FILE:-/var/lib/image-portal/catalog.json}
+ALLOWED_CHANNELS=${ALLOWED_CHANNELS:-release,beta,nightly}
+VERIFY_FILE_HASHES=${VERIFY_FILE_HASHES:-1}
+VERIFY_FILE_SIZES=${VERIFY_FILE_SIZES:-1}
+VERIFY_MANIFEST_SIGNATURES=${VERIFY_MANIFEST_SIGNATURES:-0}
+MANIFEST_PUBKEY=${MANIFEST_PUBKEY:-}
+
+if [ -z "$ARTIFACT_BASE_URL" ]; then
+    echo "image-portal-refresh-catalog: ARTIFACT_BASE_URL is empty" >&2
+    exit 2
+fi
+
+mkdir -p "$(dirname "$CATALOG_FILE")"
+
+export ONLINE_UPDATE_VERIFY_FILE_HASHES="${VERIFY_FILE_HASHES}"
+export ONLINE_UPDATE_VERIFY_FILE_SIZES="${VERIFY_FILE_SIZES}"
+export ONLINE_UPDATE_VERIFY_MANIFEST_SIGNATURES="${VERIFY_MANIFEST_SIGNATURES}"
+if [ -n "${MANIFEST_PUBKEY}" ]; then
+    export ONLINE_UPDATE_MANIFEST_PUBKEY="${MANIFEST_PUBKEY}"
+fi
+
+tmp_catalog="${CATALOG_FILE}.tmp.$$"
+cleanup_tmp() {
+    rm -f "$tmp_catalog"
+}
+trap cleanup_tmp EXIT INT TERM
+
+/usr/bin/php \
+    /usr/share/image-portal/tools/build-catalog.php \
+    --feed-root "$FEED_ROOT" \
+    --artifact-base-url "$ARTIFACT_BASE_URL" \
+    --allowed-channels "$ALLOWED_CHANNELS" \
+    --out "$tmp_catalog"
+
+mv -f "$tmp_catalog" "$CATALOG_FILE"
+trap - EXIT INT TERM

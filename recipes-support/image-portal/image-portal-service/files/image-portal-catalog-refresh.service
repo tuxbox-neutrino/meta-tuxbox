@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh image-portal catalog from feed manifests
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/image-portal-refresh-catalog
+User=image-portal
+Group=image-portal
+StateDirectory=image-portal
+UMask=0022
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
