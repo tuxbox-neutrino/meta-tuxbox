@@ -5,7 +5,7 @@ inherit gitpkgv
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ca97af75b78809a5c401f63ead0f59f2"
 
 # Mark this bbappend revision for feed updates.
-PR:append = ".1"
+PR:append = ".2"
 
 # Override the gittag-based PKGV from oe-alliance streamlink recipe.
 PKGV = "${GITPKGVTAG}"
@@ -14,7 +14,7 @@ do_install:append() {
     # Restore CLI module and launcher needed by webtv stream scripts.
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli
     if [ -d "${S}/src/streamlink_cli" ]; then
-        cp -a ${S}/src/streamlink_cli/*.py ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli/
+        cp -a ${S}/src/streamlink_cli/. ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli/
     fi
 
     install -d ${D}${bindir}
@@ -30,5 +30,5 @@ EOF2
 
 FILES:${PN}:append = " \
     ${bindir}/streamlink \
-    ${PYTHON_SITEPACKAGES_DIR}/streamlink_cli/*.py \
+    ${PYTHON_SITEPACKAGES_DIR}/streamlink_cli \
 "
