@@ -5,10 +5,14 @@ inherit gitpkgv
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ca97af75b78809a5c401f63ead0f59f2"
 
 # Mark this bbappend revision for feed updates.
-PR:append = ".2"
+PR:append = ".3"
 
 # Override the gittag-based PKGV from oe-alliance streamlink recipe.
 PKGV = "${GITPKGVTAG}"
+
+# python3-shell is an empty split package in this setup and no IPK is emitted.
+# Keep streamlink installable from feeds by dropping the hard dependency.
+RDEPENDS:${PN}:remove = "${PYTHON_PN}-shell"
 
 do_install:append() {
     # Restore CLI module and launcher needed by webtv stream scripts.
