@@ -1,8 +1,8 @@
 PE = "2"
-PR:append = ".12"
+PR:append = ".13"
 
 inherit gitpkgv
 PKGV = "${GITPKGV}"
 
 # Track tested upstream hardening for startup/config IO paths.
-SRCREV = "39ba5d41d5ba0c6bf49780f8e4a1c2bbbd900dc7"
+SRCREV = "39e3dd6ac2f29d9a26d56453f00b8096c0290eed"
