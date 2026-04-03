@@ -4,11 +4,12 @@
 
 DESCRIPTION = "Tuxbox-OS core tools package set"
 LICENSE = "MIT"
-PR = "r0"
+PR = "r1"
 
 inherit packagegroup
 
 RDEPENDS:${PN} = " \
+    autofs \
     bash \
     cronie \
     findutils \
@@ -22,4 +23,5 @@ RDEPENDS:${PN} = " \
     procps \
     rsync \
     tuxbox-feed-config \
+    virtual/screengrabber \
 "
