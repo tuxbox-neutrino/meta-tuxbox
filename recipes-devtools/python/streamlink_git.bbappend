@@ -5,13 +5,13 @@ inherit gitpkgv
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ca97af75b78809a5c401f63ead0f59f2"
 
 # Mark this bbappend revision for feed updates.
-PR:append = ".15"
+PR:append = ".16"
 
 # Override the gittag-based PKGV from oe-alliance streamlink recipe.
 PKGV = "${GITPKGVTAG}"
 
-# python3-shell is an empty split package in this setup and no IPK is emitted.
-# Keep streamlink installable from feeds by dropping the hard dependency.
+# The upstream hard dependency on python3-shell is not needed for our launcher.
+# Keep streamlink installable from feeds without dragging in an unnecessary split.
 RDEPENDS:${PN}:remove = "${PYTHON_PN}-shell"
 # OE python module runtime packages are mostly bytecode-only; ensure streamlink
 # gets importable python sources for its module dependencies.
@@ -39,7 +39,7 @@ do_install:append() {
     # setuptools output currently installs only streamlink_cli metadata.
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink
     if [ -d "${S}/src/streamlink" ]; then
-        cp -a ${S}/src/streamlink/. ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink/
+        cp -a --no-preserve=ownership ${S}/src/streamlink/. ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink/
     fi
 
     # We install from VCS sources, so streamlink/_version.py would try runtime
@@ -175,7 +175,7 @@ EOF
     # Restore CLI module and launcher needed by webtv stream scripts.
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli
     if [ -d "${S}/src/streamlink_cli" ]; then
-        cp -a ${S}/src/streamlink_cli/. ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli/
+        cp -a --no-preserve=ownership ${S}/src/streamlink_cli/. ${D}${PYTHON_SITEPACKAGES_DIR}/streamlink_cli/
     fi
 
     install -d ${D}${bindir}

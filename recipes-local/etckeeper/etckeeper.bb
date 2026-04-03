@@ -1,5 +1,5 @@
-LICENSE = "GPL-2.0"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
+LICENSE = "GPL-2.0-or-later & BSD-2-Clause"
+LIC_FILES_CHKSUM = "file://debian/copyright;md5=832b090ae3d7f727af067f2256f41d4d"
 
 RDEPENDS_${PN} += "git findutils util-linux-mountpoint perl-module-file-glob glibc-utils"
 
@@ -13,7 +13,7 @@ SRC_URI[sha256sum] = "76fd0349ff138b98a4dde831a23a13d3fc6608147ef4fef35ce58ebf48
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
