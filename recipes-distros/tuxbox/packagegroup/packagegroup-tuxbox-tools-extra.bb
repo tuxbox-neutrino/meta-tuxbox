@@ -4,7 +4,7 @@
 
 DESCRIPTION = "Tuxbox-OS optional extra tools package set"
 LICENSE = "MIT"
-PR = "r0"
+PR = "r1"
 
 inherit packagegroup
 
@@ -17,6 +17,7 @@ RDEPENDS:${PN} = " \
     gptfdisk \
     hd-idle \
     iperf3 \
+    etckeeper \
     links \
     mc \
     minicom \
