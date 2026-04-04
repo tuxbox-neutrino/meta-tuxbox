@@ -1,0 +1,39 @@
+From 27bf787556539ad16c6b66200601b6d91d630bda Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Sat, 4 Apr 2026 23:30:15 +0200
+Subject: [PATCH] fix: skip init re-exec after pivot_root on systemd
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Under sysvinit, 'exec init u' after pivot_root tells init to re-exec
+from the new /sbin/init (busybox) in the tmpfs environment. Under
+systemd, this triggers daemon-reexec which fails because the systemd
+binary no longer exists in the new root after pivot — potentially
+causing a PID 1 crash. Skip this call when running under systemd.
+---
+ ofgwrite.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/ofgwrite.c b/ofgwrite.c
+index 127c4eb..c5948d9 100644
+--- a/ofgwrite.c
++++ b/ofgwrite.c
+@@ -1433,9 +1433,14 @@ int umount_rootfs(int steps)
+ 		my_printf("Error starting autofs\n");
+ 	}
+ 
+-	// restart init process
+-	ret = system("exec init u");
+-	sleep(3);
++	// restart init process: only needed for sysvinit to re-exec from
++	// the new /sbin/init (busybox). Under systemd, daemon-reexec after
++	// pivot_root would fail because systemd binary is gone from newroot.
++	if (init_sys == INIT_SYSVINIT)
++	{
++		ret = system("exec init u");
++		sleep(3);
++	}
+ 
+ 	// kill all remaining open processes which prevent umounting rootfs
+ 	ret = exec_fuser_kill();

@@ -1,0 +1,37 @@
+From 6af4dcd74cf641c125205b352b24f52616fcbd60 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Sat, 4 Apr 2026 23:57:04 +0200
+Subject: [PATCH] fix: explicitly stop GUI service before rescue.target isolate
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+systemctl isolate rescue.target is asynchronous — it queues the
+target transition but returns immediately. The subsequent
+check_e2_stopped() poll could still find the GUI process running
+because systemd had not yet sent SIGTERM to its cgroup.
+
+Add explicit synchronous systemctl stop for both neutrino and
+enigma2 services before the isolate call. systemctl stop blocks
+until the service is actually down, ensuring the GUI process is
+gone before the pivot_root sequence begins.
+---
+ ofgwrite.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/ofgwrite.c b/ofgwrite.c
+index c5948d9..650bace 100644
+--- a/ofgwrite.c
++++ b/ofgwrite.c
+@@ -1326,6 +1326,11 @@ int umount_rootfs(int steps)
+ 	enum InitSystemEnum init_sys = detect_init_system();
+ 	if (init_sys == INIT_SYSTEMD)
+ 	{
++		my_printf("Stopping GUI service (systemd)\n");
++		// First, explicitly stop known GUI services synchronously.
++		// systemctl stop blocks until the service is actually stopped.
++		system("systemctl stop neutrino 2>/dev/null");
++		system("systemctl stop enigma2 2>/dev/null");
+ 		my_printf("Switching to rescue target (systemd)\n");
+ 		ret = system("systemctl isolate rescue.target");
+ 	}

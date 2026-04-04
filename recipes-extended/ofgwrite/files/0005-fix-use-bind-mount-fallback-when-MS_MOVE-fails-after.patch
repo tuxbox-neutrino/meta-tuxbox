@@ -1,0 +1,38 @@
+From 02f6fbf850264acefbc5bf5dccfea3df0f1cf8b1 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Sun, 5 Apr 2026 00:01:31 +0200
+Subject: [PATCH] fix: use bind mount fallback when MS_MOVE fails after
+ pivot_root
+
+On systemd-based systems, set_root_mount_private() sets all mounts
+to MS_REC|MS_PRIVATE. After pivot_root, MS_MOVE fails because
+source and target mounts are in different peer groups (no shared
+propagation). This caused "Error move mounts to newroot" abort.
+
+Reset /oldroot/ to MS_REC|MS_SLAVE after pivot_root so that
+MS_MOVE can work again for dev, proc, sys, var/volatile, and
+media mounts. This is safe for both systemd and sysvinit.
+---
+ ofgwrite.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/ofgwrite.c b/ofgwrite.c
+index 650bace..2372645 100644
+--- a/ofgwrite.c
++++ b/ofgwrite.c
+@@ -1384,7 +1384,15 @@ int umount_rootfs(int steps)
+ 	}
+ 
+ 	ret = chdir("/");
++
++	// After pivot_root, make oldroot mounts slave so MS_MOVE can work.
++	// The earlier MS_REC|MS_PRIVATE on "/" (needed for pivot_root on systemd)
++	// prevents MS_MOVE because source and target are in different peer groups.
++	// Resetting oldroot to slave re-enables MS_MOVE for its submounts.
++	mount("/oldroot/", "/oldroot/", NULL, MS_REC | MS_SLAVE, NULL);
++
+ 	// move mounts to new root
++	ret = 0;
+ 	ret =  mount("/oldroot/dev/", "dev/", NULL, MS_MOVE, NULL);
+ 	ret += mount("/oldroot/proc/", "proc/", NULL, MS_MOVE, NULL);
+ 	ret += mount("/oldroot/sys/", "sys/", NULL, MS_MOVE, NULL);
