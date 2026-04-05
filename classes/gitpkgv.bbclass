@@ -10,7 +10,7 @@
 # - GITPKGV_TAG_REGEXP: regexp used to normalize git describe output
 # - GITPKGVTAG_STYLE: tag formatting mode for GITPKGVTAG (default: "count")
 #   - "count":   <tag><prefix><commit-count>+<short-rev>
-#   - "count-short": <tag><prefix><commit-count>
+#   - "count-short": <tag><prefix><commits-since-tag>
 #   - "exact":   exact tag only (fallback to generated value when not on tag)
 #   - "describe": output from git describe normalized to package-safe syntax
 # - GITPKGVTAG_NO_WARN_ON_NO_TAG: set to "1" to suppress no-tag warnings
@@ -156,7 +156,8 @@ def _gitpkgv_from_externalsrc(d, use_tags):
         elif style == "count-short":
             output = _gitpkgv_describe(d, vars, exact_match=False)
             tag = gitpkgv_drop_tag_prefix(d, output)
-            return "%s%s%s" % (tag, prefix, commits)
+            tag_count = _gitpkgv_describe_tag_count(output) or commits
+            return "%s%s%s" % (tag, prefix, tag_count)
         else:
             output = _gitpkgv_describe(d, vars, exact_match=False)
             tag = gitpkgv_drop_tag_prefix(d, output)
@@ -172,6 +173,20 @@ def _gitpkgv_describe(d, vars, exact_match=False):
         cmd += " --exact-match"
 
     return bb.fetch2.runfetchcmd(cmd + " 2>/dev/null", d, quiet=True).strip()
+
+def _gitpkgv_describe_tag_count(output):
+    """Extract the commit count since the last tag from git describe output.
+
+    For 'v4.8.0-7-gfa3d998' returns '7'.  Returns None if the output
+    does not match the expected describe format (e.g. exact tag match).
+    """
+    import re
+
+    normalized = _gitpkgv_strip_tag_prefix(output)
+    m = re.match(r"^(.*)-([0-9]+)-g([0-9a-fA-F]+)$", normalized)
+    if m:
+        return m.group(2)
+    return None
 
 def _gitpkgv_describe_version(d, output):
     import re
@@ -255,7 +270,8 @@ def get_git_pkgv(d, use_tags):
                         elif style == "count-short":
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
-                            ver = "%s%s%s" % (tag, prefix, commits)
+                            tag_count = _gitpkgv_describe_tag_count(output) or commits
+                            ver = "%s%s%s" % (tag, prefix, tag_count)
                         else:
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
