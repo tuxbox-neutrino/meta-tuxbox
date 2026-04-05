@@ -136,7 +136,9 @@ if [ -d "${update_dir}" ] && [ -w "${update_dir}" ]; then
 fi
 
 workdir="$(mktemp -d "${work_base%/}/ofgwrite-caller-XXXXXX")"
+cleanup_enabled="1"
 cleanup() {
+	[ "${cleanup_enabled}" = "1" ] || return 0
 	rm -rf "${workdir}"
 }
 trap cleanup EXIT INT TERM
@@ -156,7 +158,12 @@ if [ -n "${slot}" ] && [ -x "${BACKEND_SCRIPT}" ]; then
 	else
 		"${BACKEND_SCRIPT}" "${slot}" "${image_dir}"
 	fi
-	exit $?
+	rc=$?
+	if [ "${rc}" -eq 0 ]; then
+		cleanup_enabled="0"
+		printf '%s\n' "Preserving extracted payload in ${workdir} while flash continues" >&2
+	fi
+	exit "${rc}"
 fi
 
 command -v "${OFGWRITE_BIN}" >/dev/null 2>&1 || fail "ofgwrite binary not found"
@@ -167,3 +174,11 @@ if [ -n "${opt_str}" ]; then
 else
 	"${OFGWRITE_BIN}" "${image_dir}"
 fi
+
+rc=$?
+if [ "${rc}" -eq 0 ]; then
+	cleanup_enabled="0"
+	printf '%s\n' "Preserving extracted payload in ${workdir} while flash continues" >&2
+fi
+
+exit "${rc}"
