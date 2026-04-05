@@ -6,4 +6,10 @@ python () {
     d.delVarFlag("do_configure", "nostamp")
 }
 
-PR:append = ".1"
+# deploy artifacts (fastboot.bin etc.) are copied into DEPLOY_DIR_IMAGE which
+# lives under TMPDIR.  Exclude do_deploy from sstate so a fresh TMPDIR always
+# re-runs the deploy step instead of restoring an empty staging directory.
+SSTATE_SKIP_CREATION:task-deploy = "1"
+do_deploy[nostamp] = "1"
+
+PR:append = ".2"

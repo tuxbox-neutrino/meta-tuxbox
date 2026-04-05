@@ -6,4 +6,9 @@ python () {
     d.delVarFlag("do_configure", "nostamp")
 }
 
-PR:append = ".1"
+# Deploy artifacts live under TMPDIR.  Force re-deploy after tmp cleanup
+# instead of restoring an empty sstate staging directory.
+SSTATE_SKIP_CREATION:task-deploy = "1"
+do_deploy[nostamp] = "1"
+
+PR:append = ".2"
