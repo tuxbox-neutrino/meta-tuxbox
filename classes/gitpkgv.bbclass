@@ -15,6 +15,13 @@
 #   - "describe": output from git describe normalized to package-safe syntax
 # - GITPKGVTAG_NO_WARN_ON_NO_TAG: set to "1" to suppress no-tag warnings
 # - SRCPV_WORKSPACE: workspace fallback token (default: "999")
+#
+# Workspace support:
+# When EXTERNALSRC is set (devtool modify), externalsrc.bbclass sets
+# SRCPV="999" and strips git URLs from SRC_URI.  If the EXTERNALSRC
+# directory contains a .git repo, this class derives the real commit
+# count and revision from the working tree so that workspace-built
+# packages carry the same PKGV as a normal build of the same commit.
 
 GITPKGV = "${@get_git_pkgv(d, False)}"
 GITPKGVTAG = "${@get_git_pkgv(d, True)}"
@@ -63,10 +70,17 @@ def _gitpkgv_tag_style(d):
     return style
 
 def _gitpkgv_workspace_value(d):
+    import os
+
     workspace_tag = d.getVar("SRCPV_WORKSPACE") or "999"
     srcpv = d.getVar("SRCPV")
 
     if srcpv and (srcpv == "999" or srcpv == workspace_tag):
+        # If EXTERNALSRC points to a real git repo, skip the dummy value
+        # and let get_git_pkgv derive a real version from the working tree.
+        externalsrc = d.getVar("EXTERNALSRC")
+        if externalsrc and os.path.exists(os.path.join(externalsrc, ".git")):
+            return None
         return workspace_tag
 
     return None
@@ -88,6 +102,67 @@ def _gitpkgv_repo_has_tags(d, vars):
         return bool(refs)
     except Exception:
         return False
+
+def _gitpkgv_from_externalsrc(d, use_tags):
+    """Derive GITPKGV/GITPKGVTAG from an EXTERNALSRC git working tree.
+
+    When devtool sets EXTERNALSRC, the normal fetcher-based path in
+    get_git_pkgv() finds no git URLs (externalsrc strips them).  This
+    helper reads commit count and rev directly from the working tree so
+    that workspace-built packages carry the same version as a normal
+    build of the same commit.
+    """
+    import os
+    import bb
+    from shlex import quote
+
+    externalsrc = d.getVar("EXTERNALSRC")
+    if not externalsrc:
+        return None
+
+    gitdir = os.path.join(externalsrc, ".git")
+    if not os.path.exists(gitdir):
+        return None
+
+    repodir = quote(gitdir)
+
+    try:
+        commits = bb.fetch2.runfetchcmd(
+            "git --git-dir=%s rev-list HEAD -- 2>/dev/null | wc -l" % repodir,
+            d, quiet=True,
+        ).strip().lstrip("0") or "0"
+
+        rev_short = bb.fetch2.runfetchcmd(
+            "git --git-dir=%s rev-parse --short=7 HEAD 2>/dev/null" % repodir,
+            d, quiet=True,
+        ).strip()
+    except Exception:
+        return None
+
+    if not use_tags:
+        return "%s+%s" % (commits, rev_short)
+
+    prefix = d.getVar("GITPKGV_PREFIX") or "-git"
+    style = _gitpkgv_tag_style(d)
+    vars = {"repodir": repodir, "rev": "HEAD"}
+
+    try:
+        if style == "exact":
+            output = _gitpkgv_describe(d, vars, exact_match=True)
+            return gitpkgv_drop_tag_prefix(d, output)
+        elif style == "describe":
+            output = _gitpkgv_describe(d, vars, exact_match=False)
+            return _gitpkgv_describe_version(d, output)
+        elif style == "count-short":
+            output = _gitpkgv_describe(d, vars, exact_match=False)
+            tag = gitpkgv_drop_tag_prefix(d, output)
+            return "%s%s%s" % (tag, prefix, commits)
+        else:
+            output = _gitpkgv_describe(d, vars, exact_match=False)
+            tag = gitpkgv_drop_tag_prefix(d, output)
+            return "%s%s%s+%s" % (tag, prefix, commits, rev_short)
+    except Exception:
+        return _gitpkgv_tag_fallback(d, commits, rev_short)
 
 def _gitpkgv_describe(d, vars, exact_match=False):
     import bb
@@ -204,5 +279,11 @@ def get_git_pkgv(d, use_tags):
 
     if found:
         return format
+
+    # Workspace/externalsrc: the fetcher loop found no git URLs because
+    # externalsrc.bbclass strips them.  Derive from the local working tree.
+    ver = _gitpkgv_from_externalsrc(d, use_tags)
+    if ver is not None:
+        return ver
 
     return d.getVar("SRCPV_WORKSPACE") or "999"
