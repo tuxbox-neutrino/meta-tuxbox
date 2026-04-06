@@ -14,6 +14,10 @@
 #   - "exact":   exact tag only (fallback to generated value when not on tag)
 #   - "describe": output from git describe normalized to package-safe syntax
 # - GITPKGVTAG_NO_WARN_ON_NO_TAG: set to "1" to suppress no-tag warnings
+# - GITPKGVTAG_PRIMARY: name of the SRC_URI git source to use for tag
+#   resolution (default: unset, all sources are checked).  When set,
+#   only the named source attempts git describe; all other sources
+#   fall back to simple commits+rev without warnings.
 # - SRCPV_WORKSPACE: workspace fallback token (default: "999")
 #
 # Workspace support:
