@@ -30,6 +30,7 @@ GITPKGV_TAG_REGEXP ??= "(\d.*)-(.*)-g(.*)"
 GITPKGV_PREFIX ??= "-git"
 GITPKGVTAG_STYLE ??= "count"
 GITPKGVTAG_NO_WARN_ON_NO_TAG ?= "0"
+GITPKGVTAG_PRIMARY ??= ""
 SRCPV_WORKSPACE ?= "999"
 
 def _gitpkgv_strip_tag_prefix(version):
@@ -257,7 +258,10 @@ def get_git_pkgv(d, use_tags):
                     with open(rev_file, "r", encoding="utf-8") as f:
                         commits = f.readline(128).strip() or "0"
 
-                if use_tags:
+                primary = (d.getVar("GITPKGVTAG_PRIMARY") or "").strip()
+                is_primary = (not primary) or (name == primary)
+
+                if use_tags and is_primary:
                     prefix = d.getVar("GITPKGV_PREFIX") or "-git"
                     style = _gitpkgv_tag_style(d)
                     try:

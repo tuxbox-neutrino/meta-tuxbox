@@ -10,6 +10,10 @@ PR:append = ".16"
 # Override the gittag-based PKGV from oe-alliance streamlink recipe.
 PKGV = "${GITPKGVTAG}"
 
+# Only the main streamlink repo has tags; the plugins mirror repo does not.
+# Tell gitpkgv to resolve tags only from the primary source.
+GITPKGVTAG_PRIMARY = "streamlink"
+
 # The upstream hard dependency on python3-shell is not needed for our launcher.
 # Keep streamlink installable from feeds without dragging in an unnecessary split.
 RDEPENDS:${PN}:remove = "${PYTHON_PN}-shell"
