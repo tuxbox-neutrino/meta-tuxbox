@@ -288,7 +288,8 @@ def get_git_pkgv(d, use_tags):
                         has_tags = _gitpkgv_repo_has_tags(d, vars)
                         if (not has_tags) and d.getVar("GITPKGVTAG_NO_WARN_ON_NO_TAG") != "1":
                             bb.warn(
-                                "Missing Git tags, falling back to generated GITPKGVTAG value."
+                                "%s: Missing Git tags, falling back to generated GITPKGVTAG value."
+                                % (d.getVar("PN") or "unknown")
                             )
                         elif has_tags:
                             bb.note(
