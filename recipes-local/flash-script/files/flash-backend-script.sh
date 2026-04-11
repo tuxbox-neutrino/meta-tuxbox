@@ -5,6 +5,7 @@ LEGACY_FLASH_BIN="${FLASH_LEGACY_BIN:-/usr/bin/flash-legacy}"
 PROFILE_CONF="${FLASH_MACHINE_PROFILE_PATH:-/etc/tuxbox/flash-machine-profile.conf}"
 script_mode="${FLASH_SCRIPT_MODE:-legacy}"
 ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-0}"
+STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-}"
 
 ensure_destination_base() {
 	if [ -n "${FLASH_DESTINATION_BASE:-}" ] && [ -d "${FLASH_DESTINATION_BASE}/linuxrootfs1" ]; then
@@ -143,6 +144,11 @@ case "${slot_arg}" in
 		ensure_destination_base
 		ensure_kernel_label_for_slot "${slot_arg}"
 		ensure_payload_base "$@"
+		active_slot="$(active_slot_from_cmdline)"
+		# Inactive-slot flashes do not need to stop the running UI by default.
+		if [ -z "${STOP_NEUTRINO_BEFORE_FLASH}" ] && [ -n "${active_slot}" ] && [ "${slot_arg}" != "${active_slot}" ]; then
+			export FLASH_STOP_NEUTRINO_BEFORE_FLASH="0"
+		fi
 		;;
 esac
 

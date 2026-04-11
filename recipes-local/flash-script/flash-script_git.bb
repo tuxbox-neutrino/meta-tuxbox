@@ -13,6 +13,7 @@ inherit gitpkgv
 
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
+	file://0001-flash-add-optional-neutrino-stop-control.patch \
 	file://flash-ofgwrite-preflight.sh \
 	file://flash-dispatch.sh \
 	file://flash-backend-script.sh \
@@ -25,7 +26,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r17"
+PR = "r18"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"

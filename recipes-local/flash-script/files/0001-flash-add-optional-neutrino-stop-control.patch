@@ -1,0 +1,28 @@
+--- a/flash
++++ b/flash
+@@ -20,6 +20,7 @@
+ FLASH_SYSTEMCTL_BIN="${FLASH_SYSTEMCTL_BIN:-systemctl}"
+ FLASH_PIDOF_BIN="${FLASH_PIDOF_BIN:-pidof}"
+ FLASH_PV_BIN="${FLASH_PV_BIN:-pv}"
++FLASH_STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
+ 
+ NO_UPDATE_AVAILABLE=0
+ NEUTRINO_STOPPED=0
+@@ -555,11 +556,13 @@
+ CURRENT_ROOT_DEVICE_REAL="$(normalize_dev_path "${CURRENT_ROOT_DEVICE}")"
+ 
+ RESOLUTION="$(detect_resolution)"
+-stop_neutrino
+-if [ -w "${FLASH_AVS_INPUT_PATH}" ]; then
+-	printf 'encoder\n' > "${FLASH_AVS_INPUT_PATH}" || true
++if [ "${FLASH_STOP_NEUTRINO_BEFORE_FLASH}" = "1" ]; then
++	stop_neutrino
++	if [ -w "${FLASH_AVS_INPUT_PATH}" ]; then
++		printf 'encoder\n' > "${FLASH_AVS_INPUT_PATH}" || true
++	fi
++	clear >/dev/null 2>&1 || true
+ fi
+-clear >/dev/null 2>&1 || true
+ 
+ configure_targets "${TARGET_SLOT}"
+ 
