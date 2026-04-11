@@ -5,7 +5,7 @@ LEGACY_FLASH_BIN="${FLASH_LEGACY_BIN:-/usr/bin/flash-legacy}"
 PROFILE_CONF="${FLASH_MACHINE_PROFILE_PATH:-/etc/tuxbox/flash-machine-profile.conf}"
 script_mode="${FLASH_SCRIPT_MODE:-legacy}"
 ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-0}"
-STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-}"
+STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
 
 ensure_destination_base() {
 	if [ -n "${FLASH_DESTINATION_BASE:-}" ] && [ -d "${FLASH_DESTINATION_BASE}/linuxrootfs1" ]; then
