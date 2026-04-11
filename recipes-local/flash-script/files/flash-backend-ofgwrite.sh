@@ -15,6 +15,7 @@ ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
+ACTIVE_SLOT_SYSTEMD_UNIT_NAME="${FLASH_ACTIVE_SLOT_SYSTEMD_UNIT_NAME:-tuxbox-active-flash-ofgwrite.service}"
 TRACE_ENABLE="${FLASH_BACKEND_TRACE_ENABLE:-1}"
 TRACE_FILE="${FLASH_BACKEND_TRACE_FILE:-/var/log/tuxbox/flash-backend-ofgwrite.log}"
 TRACE_MAX_LIST_LINES="${FLASH_BACKEND_TRACE_MAX_LIST_LINES:-40}"
@@ -218,9 +219,11 @@ ensure_not_active_slot() {
 }
 
 stop_frontend_runtime() {
-	stop_required="${STOP_NEUTRINO_BEFORE_FLASH}"
+	# Active-slot flash always needs neutrino stopped before pivot_root
 	if [ "${TARGET_IS_ACTIVE_SLOT}" = "1" ]; then
 		stop_required="1"
+	else
+		stop_required="${STOP_NEUTRINO_BEFORE_FLASH}"
 	fi
 	[ "${stop_required}" = "1" ] || return 0
 
@@ -236,6 +239,64 @@ stop_frontend_runtime() {
 	fi
 
 	sync
+}
+
+is_systemd_runtime() {
+	command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]
+}
+
+start_active_slot_systemd_flash() {
+	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 1
+	is_systemd_runtime || return 1
+
+	unit_name="${ACTIVE_SLOT_SYSTEMD_UNIT_NAME}"
+	case "${unit_name}" in
+		*.service)
+			;;
+		*)
+			unit_name="${unit_name}.service"
+			;;
+	esac
+	case "${unit_name}" in
+		*/*)
+			fail "FLASH_ACTIVE_SLOT_SYSTEMD_UNIT_NAME must not contain '/': ${unit_name}"
+			;;
+	esac
+
+	ofgwrite_exec="$(resolve_executable "${OFGWRITE_BIN}" || true)"
+	[ -n "${ofgwrite_exec}" ] || fail "cannot resolve ofgwrite executable: ${OFGWRITE_BIN}"
+
+	unit_path="/run/systemd/system/${unit_name}"
+	if [ "${ofgwrite_force}" = "1" ]; then
+		exec_line="${ofgwrite_exec} -f -m ${slot} ${image_dir}"
+	else
+		exec_line="${ofgwrite_exec} -m ${slot} ${image_dir}"
+	fi
+
+	mkdir -p /run/systemd/system || fail "cannot create /run/systemd/system"
+	rm -f "${unit_path}"
+	cat >"${unit_path}" <<EOF
+[Unit]
+Description=Tuxbox active-slot flash via ofgwrite
+After=local-fs.target
+
+[Service]
+Type=forking
+GuessMainPID=no
+RemainAfterExit=yes
+KillMode=process
+TimeoutStartSec=infinity
+ExecStart=${exec_line}
+StandardOutput=journal
+StandardError=journal
+EOF
+
+	systemctl daemon-reload >/dev/null 2>&1 || fail "systemctl daemon-reload failed"
+	systemctl reset-failed "${unit_name}" >/dev/null 2>&1 || true
+	systemctl start "${unit_name}" >/dev/null 2>&1 || fail "unable to start ${unit_name}"
+	trace "started active-slot flash via transient unit ${unit_name}: ${exec_line}"
+	log "Started active-slot flash via ${unit_name}"
+	return 0
 }
 
 run_active_slot_backup() {
@@ -505,6 +566,10 @@ trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --ofgwrite
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
 stop_frontend_runtime
 run_active_slot_backup
+
+if start_active_slot_systemd_flash; then
+	exit 0
+fi
 
 if [ "${ofgwrite_force}" = "1" ]; then
 	trace "exec: ${OFGWRITE_BIN} -f -m ${slot} ${image_dir}"

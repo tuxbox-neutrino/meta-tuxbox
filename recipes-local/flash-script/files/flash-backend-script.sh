@@ -152,7 +152,7 @@ case "${slot_arg}" in
 				STOP_NEUTRINO_BEFORE_FLASH="0"
 			fi
 		fi
-		export FLASH_STOP_NEUTRINO_BEFORE_FLASH
+		export FLASH_STOP_NEUTRINO_BEFORE_FLASH="${STOP_NEUTRINO_BEFORE_FLASH}"
 		;;
 esac
 
