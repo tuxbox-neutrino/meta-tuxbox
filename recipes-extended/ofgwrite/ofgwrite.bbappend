@@ -3,7 +3,9 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI = "git://github.com/tuxbox-neutrino/ofgwrite.git;protocol=https;branch=master"
-SRCREV = "fa3d998dbe387d9eb1fca3ad9ef7e0680acdf5d7"
+# SRCREV inherited from base recipe (${AUTOREV}) — always picks latest
+# master of the tuxbox-neutrino fork. Version is derived via gitpkgv
+# from the upstream v4.8.0 tag, so no manual pinning is required.
 
 # Epoch bump: transition from legacy "4.x+git1000+..." versioning to
 # tag-derived PKGV via gitpkgv.  PE=1 ensures the new version sorts
@@ -24,4 +26,4 @@ do_install:append() {
 	install -m 0755 ${S}/ofgwrite_caller ${D}${bindir}/ofgwrite_caller
 }
 
-PR:append = ".9"
+PR:append = ".10"
