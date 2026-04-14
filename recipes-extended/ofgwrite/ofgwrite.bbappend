@@ -1,7 +1,5 @@
 # Use the tuxbox-neutrino maintained fork to keep flash behavior branding-free
 # and aligned with active-slot flashing requirements.
-FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-
 SRC_URI = "git://github.com/tuxbox-neutrino/ofgwrite.git;protocol=https;branch=master"
 # SRCREV inherited from base recipe (${AUTOREV}) — always picks latest
 # master of the tuxbox-neutrino fork. Version is derived via gitpkgv
@@ -26,4 +24,4 @@ do_install:append() {
 	install -m 0755 ${S}/ofgwrite_caller ${D}${bindir}/ofgwrite_caller
 }
 
-PR:append = ".10"
+PR:append = ".11"
