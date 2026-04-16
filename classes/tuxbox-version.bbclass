@@ -106,7 +106,7 @@ python tuxbox_generate_version_info() {
     image_file_name = _safe(d.getVar("TUXBOX_IMAGE_FILE_NAME"))
     image_manifest_file = _safe(d.getVar("TUXBOX_IMAGE_MANIFEST_FILE"), "manifest.json")
     image_discovery_api_url = _safe(d.getVar("TUXBOX_IMAGE_DISCOVERY_API_URL"))
-    image_update_key = _safe(d.getVar("TUXBOX_ONLINE_UPDATE_KEY"))
+    image_service_key = _safe(d.getVar("TUXBOX_SERVICE_KEY"))
     channel = _safe(d.getVar("TUXBOX_IMAGE_CHANNEL"), "nightly")
     if channel not in ("release", "beta", "nightly"):
         channel = "nightly"
@@ -149,7 +149,7 @@ python tuxbox_generate_version_info() {
         ("image_update_info_file", image_update_info_file),
         ("image_manifest_file", image_manifest_file),
         ("image_discovery_api_url", image_discovery_api_url),
-        ("image_update_key", image_update_key),
+        ("image_service_key", image_service_key),
         ("build_date", build_date),
         ("creator", creator),
         # Compatibility keys expected by older scripts/plugins
