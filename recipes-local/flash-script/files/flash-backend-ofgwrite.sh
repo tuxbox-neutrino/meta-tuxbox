@@ -267,10 +267,13 @@ start_active_slot_systemd_flash() {
 	[ -n "${ofgwrite_exec}" ] || fail "cannot resolve ofgwrite executable: ${OFGWRITE_BIN}"
 
 	unit_path="/run/systemd/system/${unit_name}"
+	# This codepath is only reached when TARGET_IS_ACTIVE_SLOT=1 (see guard
+	# above), so the transient unit must pass --allow-active-slot to
+	# ofgwrite — the user already confirmed flashing the running slot.
 	if [ "${ofgwrite_force}" = "1" ]; then
-		exec_line="${ofgwrite_exec} -f -m ${slot} ${image_dir}"
+		exec_line="${ofgwrite_exec} -f --allow-active-slot -m ${slot} ${image_dir}"
 	else
-		exec_line="${ofgwrite_exec} -m ${slot} ${image_dir}"
+		exec_line="${ofgwrite_exec} --allow-active-slot -m ${slot} ${image_dir}"
 	fi
 
 	mkdir -p /run/systemd/system || fail "cannot create /run/systemd/system"
@@ -571,10 +574,17 @@ if start_active_slot_systemd_flash; then
 	exit 0
 fi
 
-if [ "${ofgwrite_force}" = "1" ]; then
-	trace "exec: ${OFGWRITE_BIN} -f -m ${slot} ${image_dir}"
-	exec "${OFGWRITE_BIN}" -f -m "${slot}" "${image_dir}"
+extra_args=""
+if [ -n "${FLASH_OFGWRITE_EXTRA_ARGS:-}" ]; then
+	extra_args="${FLASH_OFGWRITE_EXTRA_ARGS}"
 fi
 
-trace "exec: ${OFGWRITE_BIN} -m ${slot} ${image_dir}"
-exec "${OFGWRITE_BIN}" -m "${slot}" "${image_dir}"
+if [ "${ofgwrite_force}" = "1" ]; then
+	trace "exec: ${OFGWRITE_BIN} ${extra_args} -f -m ${slot} ${image_dir}"
+	# shellcheck disable=SC2086
+	exec "${OFGWRITE_BIN}" ${extra_args} -f -m "${slot}" "${image_dir}"
+fi
+
+trace "exec: ${OFGWRITE_BIN} ${extra_args} -m ${slot} ${image_dir}"
+# shellcheck disable=SC2086
+exec "${OFGWRITE_BIN}" ${extra_args} -m "${slot}" "${image_dir}"
