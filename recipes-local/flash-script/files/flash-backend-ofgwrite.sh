@@ -13,6 +13,8 @@ ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-}"
 ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_ACTIVE_SLOT_REQUIRE_BACKUP:-}"
 ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
+ACTIVE_SLOT_BACKUP_MIN_FREE_KB="${FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB:-51200}"
+ACTIVE_SLOT_BACKUP_SRC_CONF="${FLASH_ACTIVE_SLOT_BACKUP_SRC_CONF:-/etc/neutrino/config/tobackup.conf}"
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
 ACTIVE_SLOT_SYSTEMD_UNIT_NAME="${FLASH_ACTIVE_SLOT_SYSTEMD_UNIT_NAME:-tuxbox-active-flash-ofgwrite.service}"
@@ -35,7 +37,7 @@ if [ -z "${ACTIVE_SLOT_REQUIRE_BACKUP}" ]; then
 	ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_DEFAULT:-1}"
 fi
 if [ -z "${ACTIVE_SLOT_BACKUP_DIR}" ]; then
-	ACTIVE_SLOT_BACKUP_DIR="${FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT:-/media/hdd/backup/flash-active-slot}"
+	ACTIVE_SLOT_BACKUP_DIR="${FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT:-/var/volatile/flash-backup}"
 fi
 
 print_usage() {
@@ -302,6 +304,42 @@ EOF
 	return 0
 }
 
+check_backup_space() {
+	bdir="$1"
+
+	src_kb=0
+	if [ -r "${ACTIVE_SLOT_BACKUP_SRC_CONF}" ]; then
+		paths=""
+		while IFS= read -r cfg_line || [ -n "${cfg_line}" ]; do
+			case "${cfg_line}" in
+				\#*|"") continue ;;
+			esac
+			p="${cfg_line%%#*}"
+			p="$(printf '%s' "${p}" | sed -e 's/[[:space:]]*$//' -e 's/^[[:space:]]*//')"
+			[ -n "${p}" ] && [ -e "${p}" ] && paths="${paths} ${p}"
+		done < "${ACTIVE_SLOT_BACKUP_SRC_CONF}"
+		if [ -n "${paths}" ]; then
+			# shellcheck disable=SC2086
+			src_kb="$(du -sk ${paths} 2>/dev/null | awk '{s+=$1} END{printf "%d", s}')"
+		fi
+	fi
+	[ -n "${src_kb}" ] || src_kb=0
+
+	probe="${bdir}"
+	while [ ! -d "${probe}" ] && [ "${probe}" != "/" ] && [ -n "${probe}" ]; do
+		probe="${probe%/*}"
+		[ -z "${probe}" ] && probe="/"
+	done
+	free_kb="$(df -Pk "${probe}" 2>/dev/null | awk 'NR==2 {printf "%d", $4}')"
+	[ -n "${free_kb}" ] || free_kb=0
+
+	required_kb=$((src_kb + ACTIVE_SLOT_BACKUP_MIN_FREE_KB))
+	log "active-slot backup space: free=${free_kb}KB src=${src_kb}KB min_margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB at ${probe}"
+	if [ "${free_kb}" -lt "${required_kb}" ]; then
+		fail "insufficient space for active-slot backup at ${bdir}: free=${free_kb}KB < required=${required_kb}KB (src=${src_kb}KB + margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB). Override via FLASH_ACTIVE_SLOT_BACKUP_DIR to use non-tmpfs storage, or lower FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB (risky)."
+	fi
+}
+
 run_active_slot_backup() {
 	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
 	if [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" != "1" ]; then
@@ -311,6 +349,7 @@ run_active_slot_backup() {
 
 	backup_cmd="$(resolve_executable "${BACKUP_BIN}" || true)"
 	[ -n "${backup_cmd}" ] || fail "active-slot flash requires backup command but '${BACKUP_BIN}' is unavailable"
+	check_backup_space "${ACTIVE_SLOT_BACKUP_DIR}"
 	mkdir -p "${ACTIVE_SLOT_BACKUP_DIR}" || fail "cannot create backup directory: ${ACTIVE_SLOT_BACKUP_DIR}"
 
 	timestamp="$(date +%Y%m%d_%H%M%S)"
