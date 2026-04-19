@@ -116,6 +116,10 @@ tuxbox_rootfs_postprocess() {
     if [ -e ${IMAGE_ROOTFS}${sysconfdir}/timezone ]; then
         echo "${DEFAULT_TIMEZONE}" > ${IMAGE_ROOTFS}${sysconfdir}/timezone
     fi
+    if [ -e ${IMAGE_ROOTFS}${datadir}/zoneinfo/${DEFAULT_TIMEZONE} ]; then
+        ln -snf ${datadir}/zoneinfo/${DEFAULT_TIMEZONE} \
+            ${IMAGE_ROOTFS}${sysconfdir}/localtime
+    fi
 
     # Create standard directories
     install -d ${IMAGE_ROOTFS}/media
