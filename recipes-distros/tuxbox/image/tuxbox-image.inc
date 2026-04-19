@@ -120,6 +120,13 @@ tuxbox_rootfs_postprocess() {
         ln -snf ${datadir}/zoneinfo/${DEFAULT_TIMEZONE} \
             ${IMAGE_ROOTFS}${sysconfdir}/localtime
     fi
+    if [ -d ${IMAGE_ROOTFS}${datadir}/zoneinfo ]; then
+        install -d ${IMAGE_ROOTFS}/share
+        if [ -L ${IMAGE_ROOTFS}/share/zoneinfo ] || \
+           [ ! -e ${IMAGE_ROOTFS}/share/zoneinfo ]; then
+            ln -snf /usr/share/zoneinfo ${IMAGE_ROOTFS}/share/zoneinfo
+        fi
+    fi
 
     # Create standard directories
     install -d ${IMAGE_ROOTFS}/media
