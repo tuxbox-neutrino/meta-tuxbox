@@ -25,7 +25,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r22"
+PR = "r23"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
@@ -71,7 +71,7 @@ EOF
 	install -m 0644 ${WORKDIR}/update_done.jpg ${D}${datadir}/tuxbox/neutrino/icons
 }
 
-FILES:${PN}:append " \
+FILES:${PN}:append = " \
 	${sysconfdir}/tuxbox/flash-backend.conf \
 	${sysconfdir}/tuxbox/flash-machine-profile.conf \
 	${libexecdir}/tuxbox \
