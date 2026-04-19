@@ -13,7 +13,6 @@ inherit gitpkgv
 
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
-	file://0001-flash-add-optional-neutrino-stop-control.patch \
 	file://flash-ofgwrite-preflight.sh \
 	file://flash-dispatch.sh \
 	file://flash-backend-script.sh \
@@ -26,7 +25,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r21"
+PR = "r22"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
@@ -72,7 +71,7 @@ EOF
 	install -m 0644 ${WORKDIR}/update_done.jpg ${D}${datadir}/tuxbox/neutrino/icons
 }
 
-FILES:${PN} += " \
+FILES:${PN}:append " \
 	${sysconfdir}/tuxbox/flash-backend.conf \
 	${sysconfdir}/tuxbox/flash-machine-profile.conf \
 	${libexecdir}/tuxbox \
