@@ -9,7 +9,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 IMAGE_FEATURES += " ${PN} "
 
-inherit gitpkgv
+inherit gitpkgv systemd
 
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
@@ -17,6 +17,8 @@ SRC_URI = " \
 	file://flash-dispatch.sh \
 	file://flash-backend-script.sh \
 	file://flash-backend-ofgwrite.sh \
+	file://tuxbox-flash-restore.sh \
+	file://tuxbox-flash-restore.service \
 	file://backup_rootfs.jpg \
 	file://update_download.jpg \
 	file://update_decompress.jpg \
@@ -25,7 +27,7 @@ SRC_URI = " \
 	file://update_done.jpg \
 "
 
-PR = "r25"
+PR = "r26"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
@@ -42,6 +44,9 @@ do_install () {
 	install -d ${D}${libexecdir}/tuxbox
 	install -m 0755 ${WORKDIR}/flash-backend-script.sh ${D}${libexecdir}/tuxbox/flash-backend-script.sh
 	install -m 0755 ${WORKDIR}/flash-backend-ofgwrite.sh ${D}${libexecdir}/tuxbox/flash-backend-ofgwrite.sh
+	install -m 0755 ${WORKDIR}/tuxbox-flash-restore.sh ${D}${libexecdir}/tuxbox/tuxbox-flash-restore.sh
+	install -d ${D}${systemd_system_unitdir}
+	install -m 0644 ${WORKDIR}/tuxbox-flash-restore.service ${D}${systemd_system_unitdir}/tuxbox-flash-restore.service
 	install -d ${D}${sysconfdir}/tuxbox
 	cat > ${D}${sysconfdir}/tuxbox/flash-backend.conf <<EOF
 FLASH_BACKEND=${TUXBOX_FLASH_BACKEND}
@@ -76,4 +81,8 @@ FILES:${PN}:append = " \
 	${sysconfdir}/tuxbox/flash-machine-profile.conf \
 	${libexecdir}/tuxbox \
 	${datadir}/tuxbox/neutrino/icons \
+	${systemd_system_unitdir}/tuxbox-flash-restore.service \
 "
+
+SYSTEMD_SERVICE:${PN} = "tuxbox-flash-restore.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
