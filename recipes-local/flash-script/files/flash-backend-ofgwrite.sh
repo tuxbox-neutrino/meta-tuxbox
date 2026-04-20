@@ -15,6 +15,9 @@ ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
 ACTIVE_SLOT_BACKUP_MIN_FREE_KB="${FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB:-51200}"
 ACTIVE_SLOT_BACKUP_SRC_CONF="${FLASH_ACTIVE_SLOT_BACKUP_SRC_CONF:-/etc/neutrino/config/tobackup.conf}"
+ACTIVE_SLOT_BACKUP_KEEP_LAST="${FLASH_ACTIVE_SLOT_BACKUP_KEEP_LAST:-3}"
+ACTIVE_SLOT_BACKUP_FILE=""
+ACTIVE_SLOT_BACKUP_MARKER=""
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
 ACTIVE_SLOT_SYSTEMD_UNIT_NAME="${FLASH_ACTIVE_SLOT_SYSTEMD_UNIT_NAME:-tuxbox-active-flash-ofgwrite.service}"
@@ -269,13 +272,25 @@ start_active_slot_systemd_flash() {
 	[ -n "${ofgwrite_exec}" ] || fail "cannot resolve ofgwrite executable: ${OFGWRITE_BIN}"
 
 	unit_path="/run/systemd/system/${unit_name}"
+	# When run_active_slot_backup created a settings snapshot, forward
+	# it to ofgwrite so the tarball + marker are copied into the newly
+	# extracted rootfs. Paths stay valid across ofgwrite's pivot_root
+	# because /var/volatile is bind-mounted from the old root.
+	inject_args=""
+	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
+		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE} --keep-last=${ACTIVE_SLOT_BACKUP_KEEP_LAST}"
+		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
+			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
+		fi
+	fi
+
 	# This codepath is only reached when TARGET_IS_ACTIVE_SLOT=1 (see guard
 	# above), so the transient unit must pass --allow-active-slot to
 	# ofgwrite — the user already confirmed flashing the running slot.
 	if [ "${ofgwrite_force}" = "1" ]; then
-		exec_line="${ofgwrite_exec} -f --allow-active-slot -m ${slot} ${image_dir}"
+		exec_line="${ofgwrite_exec} -f --allow-active-slot${inject_args} -m ${slot} ${image_dir}"
 	else
-		exec_line="${ofgwrite_exec} --allow-active-slot -m ${slot} ${image_dir}"
+		exec_line="${ofgwrite_exec} --allow-active-slot${inject_args} -m ${slot} ${image_dir}"
 	fi
 
 	mkdir -p /run/systemd/system || fail "cannot create /run/systemd/system"
@@ -358,6 +373,29 @@ run_active_slot_backup() {
 	log "creating settings backup for active slot ${slot}: ${backup_file}"
 	"${backup_cmd}" "${ACTIVE_SLOT_BACKUP_DIR}" "${backup_name}" || fail "active-slot backup command failed"
 	[ -s "${backup_file}" ] || fail "active-slot backup archive missing or empty: ${backup_file}"
+
+	# Write restore-pending marker JSON alongside tarball. ofgwrite
+	# --inject-marker copies it into ${new_rootfs}/etc/neutrino/
+	# flash-restore-pending.conf; a first-boot service (Schritt B)
+	# detects it and restores from /var/lib/neutrino-backups/.
+	marker_file="${ACTIVE_SLOT_BACKUP_DIR}/${backup_name}.flash-restore-pending.json"
+	backup_bytes="$(wc -c <"${backup_file}" 2>/dev/null | awk '{print $1+0}')"
+	[ -n "${backup_bytes}" ] || backup_bytes=0
+	backup_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+	cat >"${marker_file}" <<EOF
+{
+  "schema_version": 1,
+  "backup_file": "${backup_name}.tar.gz",
+  "backup_relpath": "/var/lib/neutrino-backups/${backup_name}.tar.gz",
+  "source_slot": "${ACTIVE_SLOT}",
+  "target_slot": ${slot},
+  "backup_bytes": ${backup_bytes},
+  "created_utc": "${backup_iso}"
+}
+EOF
+	ACTIVE_SLOT_BACKUP_FILE="${backup_file}"
+	ACTIVE_SLOT_BACKUP_MARKER="${marker_file}"
+	log "restore marker written: ${marker_file} (bytes=${backup_bytes})"
 }
 
 require_command() {
