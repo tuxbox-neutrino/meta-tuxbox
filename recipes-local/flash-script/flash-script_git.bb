@@ -19,15 +19,9 @@ SRC_URI = " \
 	file://flash-backend-ofgwrite.sh \
 	file://tuxbox-flash-restore.sh \
 	file://tuxbox-flash-restore.service \
-	file://backup_rootfs.jpg \
-	file://update_download.jpg \
-	file://update_decompress.jpg \
-	file://update_kernel.jpg \
-	file://update_rootfs.jpg \
-	file://update_done.jpg \
 "
 
-PR = "r26"
+PR = "r27"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
@@ -67,20 +61,12 @@ FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ALLOW_ACTIVE_S
 FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP}"
 FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR}"
 EOF
-	install -d ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/backup_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/update_download.jpg ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/update_decompress.jpg ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/update_kernel.jpg ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/update_rootfs.jpg ${D}${datadir}/tuxbox/neutrino/icons
-	install -m 0644 ${WORKDIR}/update_done.jpg ${D}${datadir}/tuxbox/neutrino/icons
 }
 
 FILES:${PN}:append = " \
 	${sysconfdir}/tuxbox/flash-backend.conf \
 	${sysconfdir}/tuxbox/flash-machine-profile.conf \
 	${libexecdir}/tuxbox \
-	${datadir}/tuxbox/neutrino/icons \
 	${systemd_system_unitdir}/tuxbox-flash-restore.service \
 "
 
