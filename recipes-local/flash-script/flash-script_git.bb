@@ -21,7 +21,7 @@ SRC_URI = " \
 	file://tuxbox-flash-restore.service \
 "
 
-PR = "r27"
+PR = "r28"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"

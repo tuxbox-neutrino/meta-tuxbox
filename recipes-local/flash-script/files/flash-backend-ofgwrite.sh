@@ -15,7 +15,6 @@ ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
 ACTIVE_SLOT_BACKUP_MIN_FREE_KB="${FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB:-51200}"
 ACTIVE_SLOT_BACKUP_SRC_CONF="${FLASH_ACTIVE_SLOT_BACKUP_SRC_CONF:-/etc/neutrino/config/tobackup.conf}"
-ACTIVE_SLOT_BACKUP_KEEP_LAST="${FLASH_ACTIVE_SLOT_BACKUP_KEEP_LAST:-3}"
 ACTIVE_SLOT_BACKUP_FILE=""
 ACTIVE_SLOT_BACKUP_MARKER=""
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
@@ -278,7 +277,7 @@ start_active_slot_systemd_flash() {
 	# because /var/volatile is bind-mounted from the old root.
 	inject_args=""
 	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
-		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE} --keep-last=${ACTIVE_SLOT_BACKUP_KEEP_LAST}"
+		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE}"
 		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
 			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
 		fi
