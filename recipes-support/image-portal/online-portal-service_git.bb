@@ -1,20 +1,20 @@
 SUMMARY = "Manifest-first image portal service for Neutrino online flash"
 DESCRIPTION = "JSON catalog API, secure download redirect endpoint and NI legacy adapter"
-HOMEPAGE = "https://github.com/dbt1/online-update"
+HOMEPAGE = "https://github.com/tuxbox-neutrino/online-portal-service"
 MAINTAINER = "Tuxbox-Developers"
 LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=087d23281c3a088db65b90c061d4b049"
 
-FILESEXTRAPATHS:prepend := "${THISDIR}/image-portal-service/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/online-portal-service/files:"
 
-PR = "r0"
+PR = "r1"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 
 inherit gitpkgv systemd useradd
 
 SRC_URI = " \
-    git://github.com/dbt1/online-update.git;protocol=https;branch=master \
+    git://github.com/tuxbox-neutrino/online-portal-service.git;protocol=https;branch=master \
     file://image-portal.conf \
     file://config.php \
     file://image-portal-refresh-catalog \
