@@ -18,14 +18,14 @@ SRCREV = "${AUTOREV}"
 PV = "v0.9"
 SRC = "compat-5.3.c"
 
-CFLAGS += "-I${S}/c-api -I${STAGING_INCDIR}/luajit-2.1 -DLUA_COMPAT_BITLIB"
+CFLAGS += "-I${S}/c-api -I${TUXBOX_LUA_INCLUDE_DIR} -DLUA_COMPAT_BITLIB"
 
 COMPAT53_LIBS = "lstrlib lutf8lib ltablib lbitlib"
 
 do_compile () {
 	for file in ${COMPAT53_LIBS}; do
-		${CC} -O2 -fPIC -fomit-frame-pointer -shared -I${STAGING_INCDIR}/luajit-2.1 -c -o $file.o $file.c
-		${CC} -shared -fPIC -O2 ${CFLAGS} ${LDFLAGS} -I${STAGING_INCDIR}/luajit-2.1 -o $file.so $file.c 
+		${CC} -O2 -fPIC -fomit-frame-pointer -shared -I${TUXBOX_LUA_INCLUDE_DIR} -c -o $file.o $file.c
+		${CC} -shared -fPIC -O2 ${CFLAGS} ${LDFLAGS} -I${TUXBOX_LUA_INCLUDE_DIR} -o $file.so $file.c
 	done
 }
 
@@ -41,4 +41,3 @@ FILES_${PN} =  "/usr/lib \
 "
 
 BBCLASSEXTEND = "native nativesdk"
-

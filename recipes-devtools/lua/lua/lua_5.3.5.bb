@@ -26,7 +26,7 @@ SRC_URI[tarballtest.md5sum] = "b14fe3748c1cb2d74e3acd1943629ba3"
 SRC_URI[tarballtest.sha256sum] = "b80771238271c72565e5a1183292ef31bd7166414cd0d43a8eb79845fa7f599f"
 
 PROVIDES = "virtual/lua"
-RPROVIDES_${PN} += "virtual/lua"
+RPROVIDES:${PN} += "virtual/lua"
 
 inherit pkgconfig binconfig ptest
 

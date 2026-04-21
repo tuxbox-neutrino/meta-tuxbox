@@ -1,8 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/luaposix:"
 
-SRC_URI:append = " \
-    file://0001-require-bit-for-luajit.patch \
-"
+SRC_URI:append = "${@' file://0001-require-bit-for-luajit.patch' if d.getVar('TUXBOX_LUA_PROVIDER') == 'luajit' else ''}"
 
 require recipes-devtools/lua/lua.inc
 
@@ -13,13 +11,14 @@ LUA_VERSION = "${LUA_VER}"
 DEPENDS:remove = "lua"
 DEPENDS:append = " virtual/lua"
 
-# Build luaposix against luajit headers
+# Build luaposix against the selected Lua provider headers.
 # Use lua-native interpreter for build tooling
 # (overrides upstream do_compile)
 do_compile() {
     ${STAGING_BINDIR_NATIVE}/lua ${S}/build-aux/luke \
         LUAVERSION=${LUA_VERSION} \
-        CFLAGS="-I${STAGING_INCDIR}/luajit-2.1"
+        LUA_INCDIR="${TUXBOX_LUA_INCLUDE_DIR}" \
+        CFLAGS="-I${TUXBOX_LUA_INCLUDE_DIR}"
 }
 
 do_install() {
@@ -30,4 +29,4 @@ do_install() {
         install
 }
 
-PR:append = ".1"
+PR:append = ".3"

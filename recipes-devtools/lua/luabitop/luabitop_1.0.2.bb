@@ -7,6 +7,11 @@ RDEPENDS_${PN} += "virtual/lua"
 
 include ../lua.inc
 
+python () {
+    if d.getVar('TUXBOX_LUA_PROVIDER') != 'luajit':
+        raise bb.parse.SkipRecipe("LuaBitOp is only supported with LuaJIT in this stack")
+}
+
 SRCREV = "${AUTOREV}"
 
 SRC_URI = "https://bitop.luajit.org/download/LuaBitOp-1.0.2.tar.gz \
@@ -17,11 +22,11 @@ S = "${WORKDIR}/LuaBitOp-1.0.2"
 
 SRC = "bit.c"
 
-CFLAGS += "-I${STAGING_INCDIR}/luajit-2.1"
+CFLAGS += "-I${TUXBOX_LUA_INCLUDE_DIR}"
 
 do_compile () {
-	${CC} -O2 -fPIC -fomit-frame-pointer -shared -I${STAGING_INCDIR}/luajit-2.1 -c -o bit.o bit.c
-	${CC} -shared -fPIC -O2 ${CFLAGS} ${LDFLAGS} -I${STAGING_INCDIR}/luajit-2.1 -o bit.so bit.c 
+	${CC} -O2 -fPIC -fomit-frame-pointer -shared -I${TUXBOX_LUA_INCLUDE_DIR} -c -o bit.o bit.c
+	${CC} -shared -fPIC -O2 ${CFLAGS} ${LDFLAGS} -I${TUXBOX_LUA_INCLUDE_DIR} -o bit.so bit.c
 }
 
 do_install () {
@@ -33,4 +38,3 @@ FILES_${PN} =  "/usr/lib \
 "
 
 BBCLASSEXTEND = "native nativesdk"
-

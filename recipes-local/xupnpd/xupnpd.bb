@@ -14,11 +14,15 @@ SRC_URI = "\
 "	
 
 PV = "${SRCPV}"
-PR = "r1"
+PR = "r2"
 
 S = "${WORKDIR}/git/src"
 
 inherit base systemd
+inherit pkgconfig
+
+TUXBOX_LUA_INCLUDE_DIR = "${@'%s/luajit-2.1' % d.getVar('STAGING_INCDIR') if d.getVar('TUXBOX_LUA_PROVIDER') == 'luajit' else d.getVar('STAGING_INCDIR')}"
+TUXBOX_LUA_PKGCONFIG = "${@'luajit' if d.getVar('TUXBOX_LUA_PROVIDER') == 'luajit' else 'lua'}"
 
 SYSTEMD_SERVICE:${PN}:systemd = "xupnpd.service"
 SYSTEMD_AUTO_ENABLE:systemd = "enable"
@@ -26,11 +30,12 @@ SYSTEMD_AUTO_ENABLE:systemd = "enable"
 # this is very ugly, but the xupnpd makefile is utter crap :-(
 SRC = "main.cpp soap.cpp mem.cpp mcast.cpp luaxlib.cpp luaxcore.cpp luajson.cpp luajson_parser.cpp"
 
-CFLAGS += "-I${STAGING_INCDIR}/luajit-2.1"
+CFLAGS += "-I${TUXBOX_LUA_INCLUDE_DIR}"
 
 do_compile () {
+	lua_libs="$(pkg-config --libs ${TUXBOX_LUA_PKGCONFIG})"
 	${CC} -O2 -c -o md5.o md5c.c
-	${CC} ${CFLAGS} ${LDFLAGS} -DWITH_URANDOM -o xupnpd ${SRC} md5.o -lluajit-5.1 -lm -ldl -lstdc++ -rdynamic -lssl -lcrypto
+	${CC} ${CFLAGS} ${LDFLAGS} -DWITH_URANDOM -o xupnpd ${SRC} md5.o ${lua_libs} -lstdc++ -rdynamic -lssl -lcrypto
 }
 
 
