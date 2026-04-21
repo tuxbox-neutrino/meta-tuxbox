@@ -19,9 +19,10 @@ SRC_URI = " \
 	file://flash-backend-ofgwrite.sh \
 	file://tuxbox-flash-restore.sh \
 	file://tuxbox-flash-restore.service \
+	file://flash-online-check.sh \
 "
 
-PR = "r28"
+PR = "r29"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
@@ -35,6 +36,7 @@ do_install () {
 	install -m 0755 ${S}/flash ${D}${bindir}/flash-legacy
 	install -m 0755 ${WORKDIR}/flash-dispatch.sh ${D}${bindir}/flash
 	install -m 0755 ${WORKDIR}/flash-ofgwrite-preflight.sh ${D}${bindir}/flash-backend-preflight
+	install -m 0755 ${WORKDIR}/flash-online-check.sh ${D}${bindir}/flash-online-check
 	install -d ${D}${libexecdir}/tuxbox
 	install -m 0755 ${WORKDIR}/flash-backend-script.sh ${D}${libexecdir}/tuxbox/flash-backend-script.sh
 	install -m 0755 ${WORKDIR}/flash-backend-ofgwrite.sh ${D}${libexecdir}/tuxbox/flash-backend-ofgwrite.sh
