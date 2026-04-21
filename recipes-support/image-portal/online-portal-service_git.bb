@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=087d23281c3a088db65b90c061d4b049"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/online-portal-service/files:"
 
-PR = "r1"
+PR = "r2"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 
