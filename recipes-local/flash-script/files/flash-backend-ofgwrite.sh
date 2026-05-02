@@ -10,6 +10,7 @@ CURL_BIN="${FLASH_CURL_BIN:-curl}"
 UNZIP_BIN="${FLASH_UNZIP_BIN:-unzip}"
 IMAGE_BASE_OVERRIDE="${FLASH_IMAGE_BASE_OVERRIDE:-}"
 ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-}"
+BACKUP_BEFORE_ANY_FLASH="${FLASH_BACKUP_BEFORE_ANY_FLASH:-}"
 ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_ACTIVE_SLOT_REQUIRE_BACKUP:-}"
 ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
@@ -26,17 +27,25 @@ TRACE_MAX_LIST_LINES="${FLASH_BACKEND_TRACE_MAX_LIST_LINES:-40}"
 TRACE_READY="0"
 TARGET_IS_ACTIVE_SLOT="0"
 ACTIVE_SLOT=""
+ROOTFS_SUBDIR_PREFIX="${FLASH_ROOTFS_SUBDIR_PREFIX:-linuxrootfs}"
+MACHINE_CAP_OFGWRITE="${FLASH_MACHINE_CAP_OFGWRITE:-}"
 
 if [ -f "${PROFILE_CONF}" ]; then
 	# shellcheck disable=SC1091
 	. "${PROFILE_CONF}"
 fi
 
+ROOTFS_SUBDIR_PREFIX="${FLASH_ROOTFS_SUBDIR_PREFIX:-${ROOTFS_SUBDIR_PREFIX}}"
+MACHINE_CAP_OFGWRITE="${FLASH_MACHINE_CAP_OFGWRITE:-${MACHINE_CAP_OFGWRITE}}"
+
 if [ -z "${ALLOW_ACTIVE_SLOT}" ]; then
 	ALLOW_ACTIVE_SLOT="${FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT_DEFAULT:-0}"
 fi
 if [ -z "${ACTIVE_SLOT_REQUIRE_BACKUP}" ]; then
 	ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_DEFAULT:-1}"
+fi
+if [ -z "${BACKUP_BEFORE_ANY_FLASH}" ]; then
+	BACKUP_BEFORE_ANY_FLASH="${FLASH_BACKUP_BEFORE_ANY_FLASH_DEFAULT:-1}"
 fi
 if [ -z "${ACTIVE_SLOT_BACKUP_DIR}" ]; then
 	ACTIVE_SLOT_BACKUP_DIR="${FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT:-/var/volatile/flash-backup}"
@@ -195,8 +204,8 @@ verify_active_slot_runtime_prereqs() {
 active_slot_from_cmdline() {
 	cmdline="$(cat "${PROC_CMDLINE_FILE}" 2>/dev/null || true)"
 	case "${cmdline}" in
-		*rootsubdir=linuxrootfs[0-9]*)
-			slot="${cmdline#*rootsubdir=linuxrootfs}"
+		*rootsubdir=${ROOTFS_SUBDIR_PREFIX}[0-9]*)
+			slot="${cmdline#*rootsubdir=${ROOTFS_SUBDIR_PREFIX}}"
 			slot="${slot%% *}"
 			slot="${slot%%[!0-9]*}"
 			printf '%s\n' "${slot}"
@@ -271,17 +280,7 @@ start_active_slot_systemd_flash() {
 	[ -n "${ofgwrite_exec}" ] || fail "cannot resolve ofgwrite executable: ${OFGWRITE_BIN}"
 
 	unit_path="/run/systemd/system/${unit_name}"
-	# When run_active_slot_backup created a settings snapshot, forward
-	# it to ofgwrite so the tarball + marker are copied into the newly
-	# extracted rootfs. Paths stay valid across ofgwrite's pivot_root
-	# because /var/volatile is bind-mounted from the old root.
-	inject_args=""
-	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
-		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE}"
-		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
-			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
-		fi
-	fi
+	inject_args="$(build_inject_args)"
 
 	# This codepath is only reached when TARGET_IS_ACTIVE_SLOT=1 (see guard
 	# above), so the transient unit must pass --allow-active-slot to
@@ -318,6 +317,17 @@ EOF
 	return 0
 }
 
+build_inject_args() {
+	inject_args=""
+	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
+		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE}"
+		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
+			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
+		fi
+	fi
+	printf '%s\n' "${inject_args}"
+}
+
 check_backup_space() {
 	bdir="$1"
 
@@ -348,30 +358,32 @@ check_backup_space() {
 	[ -n "${free_kb}" ] || free_kb=0
 
 	required_kb=$((src_kb + ACTIVE_SLOT_BACKUP_MIN_FREE_KB))
-	log "active-slot backup space: free=${free_kb}KB src=${src_kb}KB min_margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB at ${probe}"
+	log "pre-flash backup space: free=${free_kb}KB src=${src_kb}KB min_margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB at ${probe}"
 	if [ "${free_kb}" -lt "${required_kb}" ]; then
-		fail "insufficient space for active-slot backup at ${bdir}: free=${free_kb}KB < required=${required_kb}KB (src=${src_kb}KB + margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB). Override via FLASH_ACTIVE_SLOT_BACKUP_DIR to use non-tmpfs storage, or lower FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB (risky)."
+		fail "insufficient space for pre-flash backup at ${bdir}: free=${free_kb}KB < required=${required_kb}KB (src=${src_kb}KB + margin=${ACTIVE_SLOT_BACKUP_MIN_FREE_KB}KB). Override via FLASH_ACTIVE_SLOT_BACKUP_DIR to use non-tmpfs storage, or lower FLASH_ACTIVE_SLOT_BACKUP_MIN_FREE_KB (risky)."
 	fi
 }
 
-run_active_slot_backup() {
-	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
-	if [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" != "1" ]; then
-		log "warning: active-slot backup disabled; proceeding without settings backup"
+run_pre_flash_backup() {
+	if [ "${BACKUP_BEFORE_ANY_FLASH}" != "1" ]; then
+		if [ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] && [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" = "1" ]; then
+			fail "active-slot flash requires backup but FLASH_BACKUP_BEFORE_ANY_FLASH=0"
+		fi
+		log "warning: pre-flash backup disabled; proceeding without settings backup"
 		return 0
 	fi
 
 	backup_cmd="$(resolve_executable "${BACKUP_BIN}" || true)"
-	[ -n "${backup_cmd}" ] || fail "active-slot flash requires backup command but '${BACKUP_BIN}' is unavailable"
+	[ -n "${backup_cmd}" ] || fail "pre-flash backup command unavailable: ${BACKUP_BIN}"
 	check_backup_space "${ACTIVE_SLOT_BACKUP_DIR}"
 	mkdir -p "${ACTIVE_SLOT_BACKUP_DIR}" || fail "cannot create backup directory: ${ACTIVE_SLOT_BACKUP_DIR}"
 
 	timestamp="$(date +%Y%m%d_%H%M%S)"
 	backup_name="${ACTIVE_SLOT_BACKUP_NAME_PREFIX}${slot}-${timestamp}"
 	backup_file="${ACTIVE_SLOT_BACKUP_DIR}/${backup_name}.tar.gz"
-	log "creating settings backup for active slot ${slot}: ${backup_file}"
-	"${backup_cmd}" "${ACTIVE_SLOT_BACKUP_DIR}" "${backup_name}" || fail "active-slot backup command failed"
-	[ -s "${backup_file}" ] || fail "active-slot backup archive missing or empty: ${backup_file}"
+	log "creating settings backup before flashing slot ${slot}: ${backup_file}"
+	"${backup_cmd}" "${ACTIVE_SLOT_BACKUP_DIR}" "${backup_name}" || fail "pre-flash backup command failed"
+	[ -s "${backup_file}" ] || fail "pre-flash backup archive missing or empty: ${backup_file}"
 
 	# Write restore-pending marker JSON alongside tarball. ofgwrite
 	# --inject-marker copies it into ${new_rootfs}/etc/neutrino/
@@ -386,7 +398,7 @@ run_active_slot_backup() {
   "schema_version": 1,
   "backup_file": "${backup_name}.tar.gz",
   "backup_relpath": "/var/lib/neutrino-backups/${backup_name}.tar.gz",
-  "source_slot": "${ACTIVE_SLOT}",
+  "source_slot": "${ACTIVE_SLOT:-}",
   "target_slot": ${slot},
   "backup_bytes": ${backup_bytes},
   "created_utc": "${backup_iso}"
@@ -428,6 +440,9 @@ maybe_get_machine_from_config() {
 
 has_kernel_file() {
 	dir="$1"
+	if [ -n "${FLASH_KERNEL_FILE:-}" ] && [ -f "${dir}/${FLASH_KERNEL_FILE}" ]; then
+		return 0
+	fi
 	if [ -f "${dir}/kernel.bin" ] || [ -f "${dir}/uImage" ]; then
 		return 0
 	fi
@@ -436,6 +451,9 @@ has_kernel_file() {
 
 has_rootfs_file() {
 	dir="$1"
+	if [ -n "${FLASH_ROOTFS_FILE:-}" ] && [ -f "${dir}/${FLASH_ROOTFS_FILE}" ]; then
+		return 0
+	fi
 	for name in \
 		rootfs.bin \
 		root_cfe_auto.bin \
@@ -542,7 +560,11 @@ fi
 
 validate_bool "FLASH_ALLOW_ACTIVE_SLOT" "${ALLOW_ACTIVE_SLOT}"
 validate_bool "FLASH_ACTIVE_SLOT_REQUIRE_BACKUP" "${ACTIVE_SLOT_REQUIRE_BACKUP}"
+validate_bool "FLASH_BACKUP_BEFORE_ANY_FLASH" "${BACKUP_BEFORE_ANY_FLASH}"
 validate_bool "FLASH_BACKEND_TRACE_ENABLE" "${TRACE_ENABLE}"
+if [ -n "${MACHINE_CAP_OFGWRITE}" ] && [ "${MACHINE_CAP_OFGWRITE}" != "1" ]; then
+	fail "machine profile marks Ofgwrite unsupported (FLASH_MACHINE_CAP_OFGWRITE=${MACHINE_CAP_OFGWRITE})"
+fi
 case "${ACTIVE_SLOT_BACKUP_DIR}" in
 	/*)
 		;;
@@ -552,7 +574,7 @@ case "${ACTIVE_SLOT_BACKUP_DIR}" in
 esac
 trace_init
 trace "invocation: slot=${slot} source_mode='${source_mode}' force_arg='${force_arg}'"
-trace "config: allow_active=${ALLOW_ACTIVE_SLOT} require_backup=${ACTIVE_SLOT_REQUIRE_BACKUP} stop_neutrino=${STOP_NEUTRINO_BEFORE_FLASH}"
+trace "config: allow_active=${ALLOW_ACTIVE_SLOT} backup_before_any=${BACKUP_BEFORE_ANY_FLASH} require_backup=${ACTIVE_SLOT_REQUIRE_BACKUP} stop_neutrino=${STOP_NEUTRINO_BEFORE_FLASH} rootfs_prefix=${ROOTFS_SUBDIR_PREFIX}"
 trace_runtime_snapshot
 ensure_not_active_slot "${slot}"
 cleanup_stale_ofgwrite_runtime
@@ -644,7 +666,7 @@ trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --ofgwrite
 
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
 stop_frontend_runtime
-run_active_slot_backup
+run_pre_flash_backup
 
 if start_active_slot_systemd_flash; then
 	exit 0
@@ -654,13 +676,14 @@ extra_args=""
 if [ -n "${FLASH_OFGWRITE_EXTRA_ARGS:-}" ]; then
 	extra_args="${FLASH_OFGWRITE_EXTRA_ARGS}"
 fi
+inject_args="$(build_inject_args)"
 
 if [ "${ofgwrite_force}" = "1" ]; then
-	trace "exec: ${OFGWRITE_BIN} ${extra_args} -f -m ${slot} ${image_dir}"
+	trace "exec: ${OFGWRITE_BIN} ${extra_args}${inject_args} -f -m ${slot} ${image_dir}"
 	# shellcheck disable=SC2086
-	exec "${OFGWRITE_BIN}" ${extra_args} -f -m "${slot}" "${image_dir}"
+	exec "${OFGWRITE_BIN}" ${extra_args} ${inject_args} -f -m "${slot}" "${image_dir}"
 fi
 
-trace "exec: ${OFGWRITE_BIN} ${extra_args} -m ${slot} ${image_dir}"
+trace "exec: ${OFGWRITE_BIN} ${extra_args}${inject_args} -m ${slot} ${image_dir}"
 # shellcheck disable=SC2086
-exec "${OFGWRITE_BIN}" ${extra_args} -m "${slot}" "${image_dir}"
+exec "${OFGWRITE_BIN}" ${extra_args} ${inject_args} -m "${slot}" "${image_dir}"

@@ -40,6 +40,9 @@ fail() {
 
 has_kernel_file() {
 	dir="$1"
+	if [ -n "${FLASH_KERNEL_FILE:-}" ] && [ -f "${dir}/${FLASH_KERNEL_FILE}" ]; then
+		return 0
+	fi
 	if [ -f "${dir}/kernel.bin" ] || [ -f "${dir}/uImage" ]; then
 		return 0
 	fi
@@ -48,6 +51,9 @@ has_kernel_file() {
 
 has_rootfs_file() {
 	dir="$1"
+	if [ -n "${FLASH_ROOTFS_FILE:-}" ] && [ -f "${dir}/${FLASH_ROOTFS_FILE}" ]; then
+		return 0
+	fi
 	for name in \
 		rootfs.bin \
 		root_cfe_auto.bin \

@@ -16,6 +16,14 @@ TUXBOX_FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT ?= "0"
 TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_VALID ?= "0 1"
 TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP ?= "1"
 TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR ?= "/var/volatile/flash-backup"
+TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH_VALID ?= "0 1"
+TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH ?= "1"
+TUXBOX_FLASH_SLOT_COUNT ?= ""
+TUXBOX_FLASH_ROOTFS_SUBDIR_PREFIX ?= "linuxrootfs"
+TUXBOX_FLASH_SLOT_KERNEL_LABEL_PREFIX ?= "linuxkernel"
+TUXBOX_FLASH_SLOT_ROOTFS_LABEL_PREFIX ?= "linuxrootfs"
+TUXBOX_FLASH_SLOT_ROOTFS_SHARED_LABEL ?= "userdata"
+TUXBOX_FLASH_ACTIVE_SLOT_SOURCE ?= "cmdline-rootsubdir"
 
 TUXBOX_FLASH_USES_OFGWRITE = "${@'1' if (d.getVar('TUXBOX_FLASH_BACKEND') or '').strip() == 'ofgwrite' else '0'}"
 
@@ -39,6 +47,19 @@ python __anonymous() {
     ).split()
     active_slot_backup_dir = (
         d.getVar("TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR") or ""
+    ).strip()
+    backup_before_any_flash = (
+        d.getVar("TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH") or ""
+    ).strip()
+    backup_before_any_flash_valid = (
+        d.getVar("TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH_VALID") or ""
+    ).split()
+    slot_count = (d.getVar("TUXBOX_FLASH_SLOT_COUNT") or "").strip()
+    rootfs_subdir_prefix = (
+        d.getVar("TUXBOX_FLASH_ROOTFS_SUBDIR_PREFIX") or ""
+    ).strip()
+    active_slot_source = (
+        d.getVar("TUXBOX_FLASH_ACTIVE_SLOT_SOURCE") or ""
     ).strip()
 
     if not backend:
@@ -78,6 +99,22 @@ python __anonymous() {
             "TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR must be absolute: '%s'"
             % active_slot_backup_dir
         )
+    if backup_before_any_flash not in backup_before_any_flash_valid:
+        bb.fatal(
+            "Invalid TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH '%s' (valid: %s)"
+            % (backup_before_any_flash, " ".join(backup_before_any_flash_valid))
+        )
+    if slot_count:
+        try:
+            parsed_slot_count = int(slot_count)
+        except ValueError:
+            bb.fatal("TUXBOX_FLASH_SLOT_COUNT must be numeric when set")
+        if parsed_slot_count < 1:
+            bb.fatal("TUXBOX_FLASH_SLOT_COUNT must be >= 1 when set")
+    if not rootfs_subdir_prefix:
+        bb.fatal("TUXBOX_FLASH_ROOTFS_SUBDIR_PREFIX is empty")
+    if not active_slot_source:
+        bb.fatal("TUXBOX_FLASH_ACTIVE_SLOT_SOURCE is empty")
     if not script_branch:
         bb.fatal("TUXBOX_FLASH_SCRIPT_GIT_BRANCH is empty")
 }

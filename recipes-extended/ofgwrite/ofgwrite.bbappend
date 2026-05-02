@@ -22,6 +22,10 @@ CFLAGS:append = " -Wno-error=format-security"
 
 do_install:append() {
 	install -m 0755 ${S}/ofgwrite_caller ${D}${bindir}/ofgwrite_caller
+	install -d ${D}${libexecdir}/tuxbox
+	install -m 0755 ${S}/ofgwrite_handoff ${D}${libexecdir}/tuxbox/ofgwrite-handoff
 }
 
-PR:append = ".14"
+FILES:${PN}:append = " ${libexecdir}/tuxbox/ofgwrite-handoff"
+
+PR:append = ".15"
