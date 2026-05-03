@@ -1,12 +1,14 @@
 #!/bin/sh
 # Tuxbox flash-restore: first-boot helper that restores a settings
 # archive staged by ofgwrite --inject-backup / --inject-marker. The
-# paired systemd unit only invokes this script while the marker file
-# exists, so the service is idempotent across reboots.
+# script also checks the backup directory for a fallback marker, so the
+# service remains idempotent even if the primary marker is lost.
 
 set -u
 
-MARKER="${FLASH_RESTORE_MARKER:-/etc/neutrino/flash-restore-pending.conf}"
+PRIMARY_MARKER="${FLASH_RESTORE_MARKER:-/etc/neutrino/flash-restore-pending.conf}"
+FALLBACK_DIR="${FLASH_RESTORE_FALLBACK_DIR:-/var/lib/neutrino-backups}"
+MARKER="${PRIMARY_MARKER}"
 LOG_TAG="tuxbox-flash-restore"
 
 log() {
@@ -14,10 +16,24 @@ log() {
 	printf '%s: %s\n' "${LOG_TAG}" "$*"
 }
 
-if [ ! -r "${MARKER}" ]; then
-	log "no marker at ${MARKER}, nothing to do"
+find_marker() {
+	if [ -r "${PRIMARY_MARKER}" ]; then
+		MARKER="${PRIMARY_MARKER}"
+		return 0
+	fi
+
+	set -- "${FALLBACK_DIR}"/*.flash-restore-pending.json
+	if [ -r "$1" ]; then
+		MARKER="$1"
+		log "primary marker missing, using fallback marker ${MARKER}"
+		return 0
+	fi
+
+	log "no marker at ${PRIMARY_MARKER} or ${FALLBACK_DIR}, nothing to do"
 	exit 0
-fi
+}
+
+find_marker
 
 # Minimal JSON field extractor for the flat, one-field-per-line marker
 # written by flash-backend-ofgwrite.sh. Handles quoted strings and bare
@@ -55,8 +71,12 @@ fi
 
 log "restoring settings from ${backup_path} (${backup_name:-?})"
 if tar -xzpf "${backup_path}" -C /; then
+	fallback_marker=""
+	if [ -n "${backup_name}" ]; then
+		fallback_marker="${FALLBACK_DIR}/${backup_name%.tar.gz}.flash-restore-pending.json"
+	fi
 	log "restore succeeded, removing marker"
-	rm -f "${MARKER}"
+	rm -f "${PRIMARY_MARKER}" "${MARKER}" ${fallback_marker:+"${fallback_marker}"}
 	exit 0
 fi
 

@@ -1,7 +1,6 @@
 [Unit]
 Description=Tuxbox: restore Neutrino settings after flash
 Documentation=https://github.com/tuxbox-neutrino
-ConditionPathExists=/etc/neutrino/flash-restore-pending.conf
 After=local-fs.target
 Wants=local-fs.target
 Before=neutrino.service
