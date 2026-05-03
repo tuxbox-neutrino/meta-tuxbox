@@ -19,6 +19,8 @@ ACTIVE_SLOT_BACKUP_SRC_CONF="${FLASH_ACTIVE_SLOT_BACKUP_SRC_CONF:-/etc/neutrino/
 ACTIVE_SLOT_BACKUP_FILE=""
 ACTIVE_SLOT_BACKUP_MARKER=""
 BACKUP_BIN="${FLASH_BACKUP_BIN:-/usr/bin/backup.sh}"
+RESTORE_HELPER="${FLASH_RESTORE_HELPER:-/usr/libexec/tuxbox/tuxbox-flash-restore.sh}"
+RESTORE_SERVICE="${FLASH_RESTORE_SERVICE:-/lib/systemd/system/tuxbox-flash-restore.service}"
 STOP_NEUTRINO_BEFORE_FLASH="${FLASH_STOP_NEUTRINO_BEFORE_FLASH:-1}"
 ACTIVE_SLOT_SYSTEMD_UNIT_NAME="${FLASH_ACTIVE_SLOT_SYSTEMD_UNIT_NAME:-tuxbox-active-flash-ofgwrite.service}"
 TRACE_ENABLE="${FLASH_BACKEND_TRACE_ENABLE:-1}"
@@ -321,6 +323,12 @@ build_inject_args() {
 	inject_args=""
 	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
 		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE}"
+		if [ -f "${RESTORE_HELPER}" ]; then
+			inject_args="${inject_args} --inject-restore-helper=${RESTORE_HELPER}"
+		fi
+		if [ -f "${RESTORE_SERVICE}" ]; then
+			inject_args="${inject_args} --inject-restore-service=${RESTORE_SERVICE}"
+		fi
 		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
 			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
 		fi
