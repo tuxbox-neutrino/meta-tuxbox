@@ -9,17 +9,12 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 IMAGE_FEATURES += " ${PN} "
 
-inherit gitpkgv systemd
+inherit gitpkgv
 
 SRC_URI = " \
 	git://github.com/tuxbox-neutrino/flash-script.git;branch=${TUXBOX_FLASH_SCRIPT_GIT_BRANCH};protocol=https \
-	file://flash-ofgwrite-preflight.sh \
 	file://flash-dispatch.sh \
 	file://flash-backend-script.sh \
-	file://flash-backend-ofgwrite.sh \
-	file://tuxbox-flash-restore.sh \
-	file://tuxbox-flash-restore.service \
-	file://flash-online-check.sh \
 "
 
 PR = "r29"
@@ -35,49 +30,15 @@ do_install () {
 	install -d ${D}${bindir}
 	install -m 0755 ${S}/flash ${D}${bindir}/flash-legacy
 	install -m 0755 ${WORKDIR}/flash-dispatch.sh ${D}${bindir}/flash
-	install -m 0755 ${WORKDIR}/flash-ofgwrite-preflight.sh ${D}${bindir}/flash-backend-preflight
-	install -m 0755 ${WORKDIR}/flash-online-check.sh ${D}${bindir}/flash-online-check
 	install -d ${D}${libexecdir}/tuxbox
 	install -m 0755 ${WORKDIR}/flash-backend-script.sh ${D}${libexecdir}/tuxbox/flash-backend-script.sh
-	install -m 0755 ${WORKDIR}/flash-backend-ofgwrite.sh ${D}${libexecdir}/tuxbox/flash-backend-ofgwrite.sh
-	install -m 0755 ${WORKDIR}/tuxbox-flash-restore.sh ${D}${libexecdir}/tuxbox/tuxbox-flash-restore.sh
-	install -d ${D}${systemd_system_unitdir}
-	install -m 0644 ${WORKDIR}/tuxbox-flash-restore.service ${D}${systemd_system_unitdir}/tuxbox-flash-restore.service
 	install -d ${D}${sysconfdir}/tuxbox
 	cat > ${D}${sysconfdir}/tuxbox/flash-backend.conf <<EOF
 FLASH_BACKEND=${TUXBOX_FLASH_BACKEND}
-EOF
-	cat > ${D}${sysconfdir}/tuxbox/flash-machine-profile.conf <<EOF
-FLASH_MACHINE="${MACHINE}"
-FLASH_MACHINEBUILD="${MACHINEBUILD}"
-FLASH_MACHINE_DRIVER="${MACHINE_DRIVER}"
-FLASH_IMAGE_DIR="${IMAGEDIR}"
-FLASH_MTD_KERNEL="${MTD_KERNEL}"
-FLASH_MTD_ROOTFS="${MTD_ROOTFS}"
-FLASH_KERNEL_FILE="${KERNEL_FILE}"
-FLASH_ROOTFS_FILE="${ROOTFS_FILE}"
-FLASH_IMAGE_FSTYPES="${IMAGE_FSTYPES}"
-FLASH_MACHINE_CAP_OFGWRITE="${TUXBOX_FLASH_MACHINE_CAP_OFGWRITE}"
-FLASH_SLOT_COUNT="${TUXBOX_FLASH_SLOT_COUNT}"
-FLASH_ROOTFS_SUBDIR_PREFIX="${TUXBOX_FLASH_ROOTFS_SUBDIR_PREFIX}"
-FLASH_SLOT_KERNEL_LABEL_PREFIX="${TUXBOX_FLASH_SLOT_KERNEL_LABEL_PREFIX}"
-FLASH_SLOT_ROOTFS_LABEL_PREFIX="${TUXBOX_FLASH_SLOT_ROOTFS_LABEL_PREFIX}"
-FLASH_SLOT_ROOTFS_SHARED_LABEL="${TUXBOX_FLASH_SLOT_ROOTFS_SHARED_LABEL}"
-FLASH_ACTIVE_SLOT_SOURCE="${TUXBOX_FLASH_ACTIVE_SLOT_SOURCE}"
-FLASH_SCRIPT_MODE="${TUXBOX_FLASH_SCRIPT_MODE}"
-FLASH_BACKUP_BEFORE_ANY_FLASH_DEFAULT="${TUXBOX_FLASH_BACKUP_BEFORE_ANY_FLASH}"
-FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ALLOW_ACTIVE_SLOT}"
-FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_REQUIRE_BACKUP}"
-FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT="${TUXBOX_FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR}"
 EOF
 }
 
 FILES:${PN}:append = " \
 	${sysconfdir}/tuxbox/flash-backend.conf \
-	${sysconfdir}/tuxbox/flash-machine-profile.conf \
 	${libexecdir}/tuxbox \
-	${systemd_system_unitdir}/tuxbox-flash-restore.service \
 "
-
-SYSTEMD_SERVICE:${PN} = "tuxbox-flash-restore.service"
-SYSTEMD_AUTO_ENABLE:${PN} = "enable"

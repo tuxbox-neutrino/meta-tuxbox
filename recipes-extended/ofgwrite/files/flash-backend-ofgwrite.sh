@@ -372,6 +372,19 @@ check_backup_space() {
 	fi
 }
 
+check_pre_flash_backup_prereqs() {
+	if [ "${BACKUP_BEFORE_ANY_FLASH}" != "1" ]; then
+		if [ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] && [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" = "1" ]; then
+			fail "active-slot flash requires backup but FLASH_BACKUP_BEFORE_ANY_FLASH=0"
+		fi
+		return 0
+	fi
+
+	backup_cmd="$(resolve_executable "${BACKUP_BIN}" || true)"
+	[ -n "${backup_cmd}" ] || fail "pre-flash backup command unavailable: ${BACKUP_BIN}"
+	check_backup_space "${ACTIVE_SLOT_BACKUP_DIR}"
+}
+
 run_pre_flash_backup() {
 	if [ "${BACKUP_BEFORE_ANY_FLASH}" != "1" ]; then
 		if [ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] && [ "${ACTIVE_SLOT_REQUIRE_BACKUP}" = "1" ]; then
@@ -673,6 +686,7 @@ trace_image_payload "${image_dir}"
 trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --ofgwrite-bin ${OFGWRITE_BIN} --image-dir ${image_dir}"
 
 "${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
+check_pre_flash_backup_prereqs
 stop_frontend_runtime
 run_pre_flash_backup
 
