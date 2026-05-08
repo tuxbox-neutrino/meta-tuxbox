@@ -1,4 +1,4 @@
-PR:append = ".1"
+PR:append = ".2"
 
 # Current upstream libaacs already tries pkg-config before falling back to
 # libgcrypt-config/gpg-error-config. The older OE-Alliance patch no longer
