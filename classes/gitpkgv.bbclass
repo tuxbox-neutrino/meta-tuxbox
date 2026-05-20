@@ -118,8 +118,7 @@ def _gitpkgv_from_externalsrc(d, use_tags):
     build of the same commit.
     """
     import os
-    import bb
-    from shlex import quote
+    import subprocess
 
     externalsrc = d.getVar("EXTERNALSRC")
     if not externalsrc:
@@ -129,17 +128,24 @@ def _gitpkgv_from_externalsrc(d, use_tags):
     if not os.path.exists(gitdir):
         return None
 
-    repodir = quote(gitdir)
+    git_env = os.environ.copy()
+    for var in tuple(git_env):
+        if var.startswith("GIT_"):
+            git_env.pop(var, None)
 
     try:
-        commits = bb.fetch2.runfetchcmd(
-            "git --git-dir=%s rev-list HEAD -- 2>/dev/null | wc -l" % repodir,
-            d, quiet=True,
+        commits = subprocess.check_output(
+            ["git", "-C", externalsrc, "rev-list", "--count", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            env=git_env,
+            text=True,
         ).strip().lstrip("0") or "0"
 
-        rev_short = bb.fetch2.runfetchcmd(
-            "git --git-dir=%s rev-parse --short=7 HEAD 2>/dev/null" % repodir,
-            d, quiet=True,
+        rev_short = subprocess.check_output(
+            ["git", "-C", externalsrc, "rev-parse", "--short=7", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            env=git_env,
+            text=True,
         ).strip()
     except Exception:
         return None
@@ -149,22 +155,34 @@ def _gitpkgv_from_externalsrc(d, use_tags):
 
     prefix = d.getVar("GITPKGV_PREFIX") or "-git"
     style = _gitpkgv_tag_style(d)
-    vars = {"repodir": repodir, "rev": "HEAD"}
+
+    def describe(exact_match=False):
+        cmd = ["git", "-C", externalsrc, "describe", "HEAD", "--tags"]
+        if exact_match:
+            cmd.append("--exact-match")
+        return subprocess.check_output(
+            cmd,
+            stderr=subprocess.DEVNULL,
+            env=git_env,
+            text=True,
+        ).strip()
 
     try:
         if style == "exact":
-            output = _gitpkgv_describe(d, vars, exact_match=True)
+            output = describe(exact_match=True)
             return gitpkgv_drop_tag_prefix(d, output)
         elif style == "describe":
-            output = _gitpkgv_describe(d, vars, exact_match=False)
+            output = describe(exact_match=False)
             return _gitpkgv_describe_version(d, output)
         elif style == "count-short":
-            output = _gitpkgv_describe(d, vars, exact_match=False)
+            output = describe(exact_match=False)
             tag = gitpkgv_drop_tag_prefix(d, output)
-            tag_count = _gitpkgv_describe_tag_count(output) or commits
+            tag_count = _gitpkgv_describe_tag_count(output)
+            if tag_count is None:
+                tag_count = "0"
             return "%s%s%s" % (tag, prefix, tag_count)
         else:
-            output = _gitpkgv_describe(d, vars, exact_match=False)
+            output = describe(exact_match=False)
             tag = gitpkgv_drop_tag_prefix(d, output)
             return "%s%s%s+%s" % (tag, prefix, commits, rev_short)
     except Exception:
@@ -211,6 +229,13 @@ def get_git_pkgv(d, use_tags):
     workspace_value = _gitpkgv_workspace_value(d)
     if workspace_value is not None:
         return workspace_value
+
+    # Prefer the real local git tree for devtool/EXTERNALSRC workspaces.  Some
+    # recipes still expose fetcher metadata while building from EXTERNALSRC, but
+    # package versions must describe the checked-out source tree.
+    ver = _gitpkgv_from_externalsrc(d, use_tags)
+    if ver is not None:
+        return ver
 
     src_uri = (d.getVar("SRC_URI") or "").split()
     fetcher = bb.fetch2.Fetch(src_uri, d)
@@ -278,7 +303,9 @@ def get_git_pkgv(d, use_tags):
                         elif style == "count-short":
                             output = _gitpkgv_describe(d, vars, exact_match=False)
                             tag = gitpkgv_drop_tag_prefix(d, output)
-                            tag_count = _gitpkgv_describe_tag_count(output) or commits
+                            tag_count = _gitpkgv_describe_tag_count(output)
+                            if tag_count is None:
+                                tag_count = "0"
                             ver = "%s%s%s" % (tag, prefix, tag_count)
                         else:
                             output = _gitpkgv_describe(d, vars, exact_match=False)
@@ -305,8 +332,8 @@ def get_git_pkgv(d, use_tags):
     if found:
         return format
 
-    # Workspace/externalsrc: the fetcher loop found no git URLs because
-    # externalsrc.bbclass strips them.  Derive from the local working tree.
+    # Workspace/externalsrc fallback for recipes where fetcher metadata was
+    # stripped after the initial workspace check.
     ver = _gitpkgv_from_externalsrc(d, use_tags)
     if ver is not None:
         return ver
