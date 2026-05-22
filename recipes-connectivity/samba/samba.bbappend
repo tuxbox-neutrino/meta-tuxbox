@@ -3,17 +3,19 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/samba/tuxbox:"
 INHERIT:append = " ccache"
 CCACHE_DIR:pn-samba = "${TMPDIR}/ccache/${PN}"
 
-PR:append = ".10"
+PR:append = ".11"
 
 SRC_URI += " \
     file://nmb.service.d/override.conf \
     file://smb.service.d/override.conf \
 "
 
-# Package private Samba libraries to avoid QA "installed-vs-shipped"
+# Compatibility split for Samba layouts that still install private libraries
+# below ${libdir}/samba/*.so*. Keep the package installable even when empty.
 PACKAGES += "${PN}-private-libs"
 FILES:${PN}-private-libs = "${libdir}/samba/*.so*"
 RDEPENDS:${PN} += "${PN}-private-libs"
+ALLOW_EMPTY:${PN}-private-libs = "1"
 INSANE_SKIP:${PN}-private-libs += "dev-so"
 
 # Replace samba-common postinst/prerm/postrm with POSIX-safe versions
