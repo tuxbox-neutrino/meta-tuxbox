@@ -88,6 +88,24 @@ ensure_kernel_label_for_slot() {
 	esac
 
 	target_part=$((base_part + slot - 1))
+	rootfs_base="${FLASH_MTD_ROOTFS:-}"
+	rootfs_base="${rootfs_base#/dev/}"
+	case "${rootfs_base}" in
+		"${dev_name}"p[0-9]*)
+			rootfs_part="${rootfs_base##*p}"
+			case "${rootfs_part}" in
+				''|*[!0-9]*)
+					;;
+				*)
+					# HD51-style layouts keep p3 for rootfs/userdata and use
+					# p2,p4,p5,p6 for the kernel slots.
+					if [ "${slot}" -gt 1 ] && [ "${rootfs_part}" -eq $((base_part + 1)) ]; then
+						target_part=$((target_part + 1))
+					fi
+					;;
+			esac
+			;;
+	esac
 	target_dev="/dev/${dev_name}p${target_part}"
 	[ -e "${target_dev}" ] || return 0
 
