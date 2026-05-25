@@ -1,0 +1,120 @@
+#!/bin/sh
+
+set -u
+
+conf_dir="/etc/modules-load.d"
+state_conf_dir="/etc/tuxbox-dvb-force-load.d"
+model=""
+
+log()
+{
+    echo "tuxbox-dvb-force-load: $*"
+}
+
+load_module()
+{
+    module="$1"
+
+    if modprobe --force-modversion "$module"; then
+        log "loaded ${module}"
+    else
+        log "failed to load ${module}"
+    fi
+}
+
+read_model()
+{
+    if [ -r /proc/cmdline ]; then
+        case " $(cat /proc/cmdline) " in
+            *" bre2ze4k_4.boxmode="*)
+                model="bre2ze4k"
+                return 0
+                ;;
+            *" h7_4.boxmode="*)
+                model="h7"
+                return 0
+                ;;
+            *" hd51_4.boxmode="*)
+                model="hd51"
+                return 0
+                ;;
+        esac
+    fi
+
+    for path in /proc/stb/info/model /proc/stb/info/boxtype; do
+        [ -r "${path}" ] || continue
+        read -r model < "${path}" || model=""
+        model=$(printf '%s' "${model}" | tr '[:upper:]' '[:lower:]')
+        [ -n "${model}" ] && return 0
+    done
+    return 1
+}
+
+is_supported_model()
+{
+    case "${model}" in
+        bre2ze4k|h7|hd51)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+load_conf()
+{
+    conf="$1"
+
+    [ -e "${conf}" ] || return 0
+    [ -f "${conf}" ] || return 0
+
+    sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "${conf}" |
+    while IFS= read -r line; do
+        [ -n "${line}" ] || continue
+
+        set -- ${line}
+        [ "$#" -gt 0 ] || continue
+        load_module "$1"
+    done
+}
+
+migrate_modules_load_conf()
+{
+    conf="$1"
+
+    case "${conf}" in
+        "${conf_dir}"/_*.conf)
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    mkdir -p "${state_conf_dir}" || {
+        log "failed to create ${state_conf_dir}"
+        return 0
+    }
+
+    target="${state_conf_dir}/$(basename "${conf}")"
+    if mv "${conf}" "${target}"; then
+        log "moved ${conf} to ${target}"
+    else
+        log "failed to move ${conf} to ${target}"
+    fi
+}
+
+read_model || true
+if ! is_supported_model; then
+    log "model ${model:-unknown} does not need DVB force-load"
+    exit 0
+fi
+
+for conf in "${state_conf_dir}"/*.conf "${conf_dir}"/*.conf; do
+    load_conf "${conf}"
+done
+
+for conf in "${conf_dir}"/_*.conf; do
+    [ -e "${conf}" ] || continue
+    migrate_modules_load_conf "${conf}"
+done
+
+exit 0

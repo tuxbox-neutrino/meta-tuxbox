@@ -1,0 +1,14 @@
+[Unit]
+Description=Tuxbox: force-load proprietary HW driver modules (modversion-skew workaround)
+DefaultDependencies=no
+After=systemd-remount-fs.service
+Before=systemd-modules-load.service
+ConditionPathExists=/etc/modules-load.d
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/tuxbox-dvb-force-load
+
+[Install]
+WantedBy=sysinit.target

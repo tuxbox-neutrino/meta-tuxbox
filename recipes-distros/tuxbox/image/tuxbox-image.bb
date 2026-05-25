@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r12"
+PR = "r13"
 
 # Legacy image targets (aliases for compatibility)
 PROVIDES += "neutrino-image noneutrino-image"
@@ -19,6 +19,10 @@ BIG_IMAGE_PACKAGES = ""
 
 # Add big packages only if not small flash
 IMAGE_INSTALL += "${@bb.utils.contains('IMAGESIZE', 'small', '', '${BIG_IMAGE_PACKAGES}', d)}"
+
+# Load proprietary DVB modules before systemd-modules-load so modversion-only
+# CRC skew from newer toolchains does not block boot.
+IMAGE_INSTALL:append = " tuxbox-dvb-force-load"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-image"
