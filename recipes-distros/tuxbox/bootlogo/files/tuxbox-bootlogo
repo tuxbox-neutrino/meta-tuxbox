@@ -4,10 +4,10 @@ VIDEO_DEVICE="${TUXBOX_BOOTLOGO_VIDEO_DEVICE:-/dev/dvb/adapter0/video0}"
 WAIT_SECONDS="${TUXBOX_BOOTLOGO_WAIT_SECONDS:-3}"
 SHOWIFRAME="${TUXBOX_BOOTLOGO_SHOWIFRAME:-/usr/bin/showiframe}"
 PIC2M2V="${TUXBOX_BOOTLOGO_PIC2M2V:-/usr/bin/pic2m2v}"
+FFMPEG="${TUXBOX_BOOTLOGO_FFMPEG:-/usr/bin/ffmpeg}"
 
-SOURCE_LOGO="${TUXBOX_BOOTLOGO_SOURCE:-/usr/share/tuxbox/neutrino/icons/start.jpg}"
-CACHE_LOGO="${TUXBOX_BOOTLOGO_CACHE:-/var/cache/usr.share.tuxbox.neutrino.icons.start.jpg.m2v}"
-LEGACY_LOGO="${TUXBOX_BOOTLOGO_LEGACY:-/usr/share/tuxbox/neutrino/icons/start.m2v}"
+ICON_DIRS="${TUXBOX_BOOTLOGO_ICON_DIRS:-@N_ICONS_DIR_VAR@ @N_ICONS_DIR@}"
+CACHE_DIR="${TUXBOX_BOOTLOGO_CACHE_DIR:-/var/cache}"
 
 log() {
     echo "tuxbox-bootlogo: $*" >&2
@@ -24,13 +24,85 @@ wait_for_video_device() {
     [ -e "$VIDEO_DEVICE" ]
 }
 
+cache_for_source() {
+    cache_name="$(echo "$1" | sed 's|^/||; s|/|.|g')"
+    echo "$CACHE_DIR/${cache_name}.m2v"
+}
+
 find_logo() {
-    for logo in "$CACHE_LOGO" "$LEGACY_LOGO"; do
+    if [ -n "$TUXBOX_BOOTLOGO_CACHE" ] && [ -s "$TUXBOX_BOOTLOGO_CACHE" ]; then
+        echo "$TUXBOX_BOOTLOGO_CACHE"
+        return 0
+    fi
+
+    if [ -n "$TUXBOX_BOOTLOGO_SOURCE" ]; then
+        logo="$(cache_for_source "$TUXBOX_BOOTLOGO_SOURCE")"
+        if [ -s "$logo" ]; then
+            echo "$logo"
+            return 0
+        fi
+    fi
+
+    for icon_dir in $ICON_DIRS; do
+        logo="$(cache_for_source "$icon_dir/start.jpg")"
         if [ -s "$logo" ]; then
             echo "$logo"
             return 0
         fi
     done
+
+    if [ -n "$TUXBOX_BOOTLOGO_LEGACY" ] && [ -s "$TUXBOX_BOOTLOGO_LEGACY" ]; then
+        echo "$TUXBOX_BOOTLOGO_LEGACY"
+        return 0
+    fi
+
+    for icon_dir in $ICON_DIRS; do
+        logo="$icon_dir/start.m2v"
+        if [ -s "$logo" ]; then
+            echo "$logo"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_source_logo() {
+    if [ -n "$TUXBOX_BOOTLOGO_SOURCE" ] && [ -r "$TUXBOX_BOOTLOGO_SOURCE" ]; then
+        echo "$TUXBOX_BOOTLOGO_SOURCE"
+        return 0
+    fi
+
+    for icon_dir in $ICON_DIRS; do
+        logo="$icon_dir/start.jpg"
+        if [ -r "$logo" ]; then
+            echo "$logo"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+generate_cache_logo() {
+    cache_dir="$(dirname "$CACHE_LOGO")"
+    mkdir -p "$cache_dir" || return 1
+
+    if [ -x "$PIC2M2V" ] && "$PIC2M2V" "$SOURCE_LOGO" >/dev/null 2>&1; then
+        [ -s "$CACHE_LOGO" ] && return 0
+    fi
+
+    if [ -x "$FFMPEG" ]; then
+        tmp_logo="${CACHE_LOGO}.$$"
+        rm -f "$tmp_logo"
+        if "$FFMPEG" -hide_banner -loglevel error -y -loop 1 \
+            -i "$SOURCE_LOGO" -frames:v 1 -c:v mpeg1video \
+            -f mpeg1video "$tmp_logo"; then
+            mv "$tmp_logo" "$CACHE_LOGO"
+            return 0
+        fi
+        rm -f "$tmp_logo"
+    fi
 
     return 1
 }
@@ -45,8 +117,14 @@ if [ ! -x "$SHOWIFRAME" ]; then
     exit 0
 fi
 
-if [ ! -s "$CACHE_LOGO" ] && [ -x "$PIC2M2V" ] && [ -r "$SOURCE_LOGO" ]; then
-    if ! "$PIC2M2V" "$SOURCE_LOGO"; then
+SOURCE_LOGO="$(find_source_logo)" || true
+CACHE_LOGO=
+if [ -n "$SOURCE_LOGO" ]; then
+    CACHE_LOGO="$(cache_for_source "$SOURCE_LOGO")"
+fi
+
+if [ -n "$CACHE_LOGO" ] && [ ! -s "$CACHE_LOGO" ]; then
+    if ! generate_cache_logo; then
         log "could not generate cached logo from $SOURCE_LOGO"
     fi
 fi
