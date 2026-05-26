@@ -8,10 +8,13 @@ DESCRIPTION = "Tuxbox-OS QEMU smoke-test image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r10"
+PR = "r11"
 
 # Image variant
 IMAGE_BASENAME = "${DISTRO}-qemu-image"
+
+# QEMU starts Neutrino through its own X11 wrapper and has no DVB video device.
+TUXBOX_RUNTIME_BOOTLOGO = "0"
 
 # Give QEMU extra rootfs space for opkg testing (e.g. Neutrino).
 TUXBOX_QEMU_ROOTFS_EXTRA_SPACE ?= "1048576"
@@ -38,6 +41,7 @@ IMAGE_INSTALL:append = " \
 # Avoid full multimedia stack in QEMU (relies on SoC EGL providers).
 IMAGE_INSTALL:remove = " \
     packagegroup-tuxbox-multimedia \
+    tuxbox-runtime-bootlogo \
 "
 
 IMAGE_INSTALL:append = " \

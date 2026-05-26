@@ -1,16 +1,2 @@
-FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-
-SRC_URI:append = " file://bootlogo.service"
-
-inherit systemd
-
-PR:append = ".3"
-
-SYSTEMD_SERVICE:${PN}:systemd = "bootlogo.service"
-
-do_install:append:systemd() {
-    install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/bootlogo.service ${D}${systemd_unitdir}/system/
-}
-
-FILES:${PN}:append:systemd = " ${systemd_unitdir}/system/bootlogo.service"
+# Runtime bootlogo ownership moved to tuxbox-runtime-bootlogo.
+PR:append = ".4"

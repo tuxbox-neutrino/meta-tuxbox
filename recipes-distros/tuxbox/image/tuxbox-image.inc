@@ -19,6 +19,12 @@ TUXBOX_COMMUNITY_PARITY ?= "0"
 # feeds without installing them into the image.
 TUXBOX_PREBUILD_COMMUNITY_PARITY ?= "0"
 
+# Runtime bootlogo shown before Neutrino starts. Coolstream/sysvinit remain
+# outside this first pass.
+TUXBOX_RUNTIME_BOOTLOGO ?= "1"
+TUXBOX_RUNTIME_BOOTLOGO_SYSTEMD = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '1', '0', d)}"
+TUXBOX_RUNTIME_BOOTLOGO_PACKAGE = "${@'tuxbox-runtime-bootlogo' if d.getVar('TUXBOX_RUNTIME_BOOTLOGO') == '1' and d.getVar('TUXBOX_RUNTIME_BOOTLOGO_SYSTEMD') == '1' and not (d.getVar('MACHINE') or '').startswith('coolstream-') else ''}"
+
 # Build-only recipe list for parity tooling (not installed by default).
 TUXBOX_COMMUNITY_PARITY_EXTRA_RECIPES = " \
     autofs \
@@ -71,6 +77,11 @@ IMAGE_INSTALL:append = " \
 # Bootlogo payload for machines that use splash.bin during image packaging.
 IMAGE_INSTALL:append = " \
     ${@bb.utils.contains('MACHINE_FEATURES', 'bootsplash', 'tuxbox-bootlogo', '', d)} \
+"
+
+# Runtime bootlogo service for systemd-capable non-Coolstream images.
+IMAGE_INSTALL:append = " \
+    ${TUXBOX_RUNTIME_BOOTLOGO_PACKAGE} \
 "
 
 # System tools

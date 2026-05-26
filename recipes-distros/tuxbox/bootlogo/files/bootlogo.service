@@ -1,0 +1,12 @@
+[Unit]
+Description=Tuxbox bootlogo
+After=systemd-modules-load.service run-postinsts.service
+Before=neutrino.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/tuxbox-bootlogo
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
