@@ -7,6 +7,8 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
+PR = "r1"
+
 RDEPENDS:${PN} = " \
     busybox \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd systemd-analyze', 'sysvinit initscripts', d)} \
@@ -28,10 +30,10 @@ RDEPENDS:${PN} = " \
     wget \
     ca-certificates \
     tzdata \
+    udev-extraconf \
 "
 
 # Optional recommendations
 RRECOMMENDS:${PN} = " \
     kernel-modules \
-    udev-extraconf \
 "
