@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/base-files:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-PR:append = ".8"
+PR:append = ".9"
 
 SRC_URI += " \
 		file://backup@.service \
@@ -21,7 +21,6 @@ SRC_URI += " \
 		file://locale.conf \
 		file://local.service \
 		file://local.sh \
-		file://mount@.service \
 		file://net-umount.service \
 		file://net-umount.sh \
 		file://nsswitch.conf \
@@ -63,10 +62,6 @@ do_install:append () {
 		install -m 0755 ${WORKDIR}/net-umount.sh  ${D}${bindir}
 		install -m 0644 ${WORKDIR}/net-umount.service  ${D}${systemd_unitdir}/system
 		ln -sf /lib/systemd/system/net-umount.service  ${D}${sysconfdir}/systemd/system/multi-user.target.wants
-		install -m 0644 ${WORKDIR}/mount@.service  ${D}${systemd_unitdir}/system
-		# mount@.service and backup@.service call /usr/bin/mount.sh; the
-		# helper actually ships with udev-extraconf at /etc/udev/scripts.
-		ln -sf /etc/udev/scripts/mount.sh ${D}${bindir}/mount.sh
 		install -m 0644 ${WORKDIR}/flash@.service  ${D}${systemd_unitdir}/system
 		install -m 0644 ${WORKDIR}/restore@.service  ${D}${systemd_unitdir}/system
 		install -m 0644 ${WORKDIR}/backup@.service  ${D}${systemd_unitdir}/system
