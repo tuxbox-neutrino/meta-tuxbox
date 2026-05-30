@@ -16,6 +16,10 @@ MOUNT_BASE = "/media"
 # that only becomes ready once that very worker finishes (device job timeouts,
 # late or missing mounts). With silent gone and fsck skipped the mount succeeds
 # anyway, so --no-block does not produce stale cache here.
+# Also guard the /tmp/.automount-<dev> cache check with a /proc/mounts test: a
+# menu umount (udevadm trigger remove with the device still present) leaves the
+# cache file behind, which would otherwise turn the next menu mount into a
+# no-op ("already cached").
 # Refs: https://forum.tuxbox-neutrino.org/forum/viewtopic.php?p=388803
 do_install:append() {
     mountsh="${D}${sysconfdir}/udev/scripts/mount.sh"
@@ -37,6 +41,15 @@ do_install:append() {
 
     grep -qF -- '--fsck=no --collect --no-block -t auto' "$mountsh" || \
         bbfatal "udev-extraconf mount.sh: --fsck=no rewrite did not apply"
+
+    # Honour the /tmp/.automount-<dev> cache only if the device is really
+    # mounted; a menu umount leaves the cache file behind and would otherwise
+    # block re-mounting ("already cached"). Drop a stale file, then mount.
+    grep -qF 'if [ -e "/tmp/.automount-$name" ]; then' "$mountsh" || \
+        bbfatal "udev-extraconf mount.sh: automount cache check not found (poky changed)"
+    sed -i '/^automount_systemd()/,/^}/ s@^\( *\)if \[ -e "/tmp/.automount-\$name" \]; then@\1grep -q "^$DEVNAME " /proc/mounts || rm -f "/tmp/.automount-$name"\n\1if [ -e "/tmp/.automount-$name" ]; then@' "$mountsh"
+    grep -qF 'grep -q "^$DEVNAME " /proc/mounts || rm -f "/tmp/.automount-$name"' "$mountsh" || \
+        bbfatal "udev-extraconf mount.sh: stale-cache guard not inserted"
 }
 
-PR:append = ".2"
+PR:append = ".3"
