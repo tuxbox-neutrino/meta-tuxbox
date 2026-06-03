@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: developers <developers@tuxbox-neutrino.org>
+Date: Wed, 3 Jun 2026 20:12:00 +0200
+Subject: [PATCH] dvb-core: guard stale dmxdev callbacks
+
+Closed vendor DVB blobs can deliver TS callbacks after zap teardown.
+Drop stale callbacks whose private dmxdev filter has already been cleared
+instead of dereferencing NULL.
+---
+ drivers/media/dvb-core/dmxdev.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index 2abcb413..9cd56bda 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -367,6 +367,12 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
+ 	struct dmxdev_filter *dmxdevfilter = filter->priv;
+ 	int ret;
+ 
++	if (!dmxdevfilter) {
++		pr_warn_ratelimited("dvb_dmxdev_section_callback: NULL filter->priv "
++				    "(stale filter), dropping section\n");
++		return 0;
++	}
++
+ 	if (dmxdevfilter->buffer.error) {
+ 		wake_up(&dmxdevfilter->buffer.queue);
+ 		return 0;
+@@ -401,6 +407,12 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
+ 	struct dvb_ringbuffer *buffer;
+ 	int ret;
+ 
++	if (!dmxdevfilter) {
++		pr_warn_ratelimited("dvb_dmxdev_ts_callback: NULL feed->priv "
++				    "(stale feed), dropping TS\n");
++		return 0;
++	}
++
+ 	spin_lock(&dmxdevfilter->dev->lock);
+ 	if (dmxdevfilter->params.pes.output == DMX_OUT_DECODER) {
+ 		spin_unlock(&dmxdevfilter->dev->lock);
+-- 
+2.47.3
+

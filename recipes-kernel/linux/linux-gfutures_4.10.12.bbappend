@@ -1,6 +1,8 @@
-PR:append = ".5"
+PR:append = ".6"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux-gfutures:"
+
+SRC_URI:append = " file://0009-dvb-core-dmxdev-guard-null-feed-priv.patch"
 
 python do_patch:prepend() {
     import os
