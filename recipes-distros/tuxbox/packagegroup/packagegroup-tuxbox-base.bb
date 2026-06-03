@@ -7,7 +7,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-PR = "r1"
+PR = "r2"
 
 RDEPENDS:${PN} = " \
     busybox \
@@ -17,6 +17,7 @@ RDEPENDS:${PN} = " \
     util-linux-fdisk \
     util-linux-mkfs \
     util-linux-mount \
+    util-linux-flock \
     e2fsprogs \
     e2fsprogs-e2fsck \
     e2fsprogs-mke2fs \
