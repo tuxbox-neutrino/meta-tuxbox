@@ -683,9 +683,9 @@ fi
 [ -x "${BACKEND_PREFLIGHT_BIN}" ] || fail "preflight command not executable: ${BACKEND_PREFLIGHT_BIN}"
 trace "resolved mode=${mode} image_base='${image_base}' image_dir='${image_dir}'"
 trace_image_payload "${image_dir}"
-trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --ofgwrite-bin ${OFGWRITE_BIN} --image-dir ${image_dir}"
+trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --slot ${slot} --ofgwrite-bin ${OFGWRITE_BIN} --image-dir ${image_dir}"
 
-"${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
+"${BACKEND_PREFLIGHT_BIN}" --backend ofgwrite --slot "${slot}" --ofgwrite-bin "${OFGWRITE_BIN}" --image-dir "${image_dir}"
 check_pre_flash_backup_prereqs
 stop_frontend_runtime
 run_pre_flash_backup
