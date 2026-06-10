@@ -8,7 +8,7 @@ DESCRIPTION = "Tuxbox-OS Neutrino Image"
 LICENSE = "MIT"
 
 PV = "${DISTRO_VERSION}"
-PR = "r13"
+PR = "r14"
 
 # Legacy image targets (aliases for compatibility)
 PROVIDES += "neutrino-image noneutrino-image"

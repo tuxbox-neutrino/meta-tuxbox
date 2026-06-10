@@ -98,6 +98,8 @@ IMAGE_INSTALL:append = " \
 # Networking
 IMAGE_INSTALL:append = " \
     packagegroup-tuxbox-network \
+    chrony \
+    chronyc \
 "
 
 # Filesystem support
