@@ -280,6 +280,7 @@ check_target_startup_layout() {
 	for startup in \
 		"${boot_dir}/STARTUP_LINUX_${target_slot}_BOXMODE_1" \
 		"${boot_dir}/STARTUP_LINUX_${target_slot}_BOXMODE_12" \
+		"${boot_dir}/STARTUP_LINUX_${target_slot}" \
 		"${boot_dir}/STARTUP_${target_slot}" \
 		"${boot_dir}/STARTUP"; do
 		[ -r "${startup}" ] || continue
