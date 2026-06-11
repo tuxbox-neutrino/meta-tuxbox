@@ -24,6 +24,7 @@ TUXBOX_FLASH_SLOT_KERNEL_LABEL_PREFIX ?= "linuxkernel"
 TUXBOX_FLASH_SLOT_ROOTFS_LABEL_PREFIX ?= "linuxrootfs"
 TUXBOX_FLASH_SLOT_ROOTFS_SHARED_LABEL ?= "userdata"
 TUXBOX_FLASH_ACTIVE_SLOT_SOURCE ?= "cmdline-rootsubdir"
+TUXBOX_FLASH_ARCHIVE_NAME_PREFIXES ?= "tuxbox-image=${MACHINE};Tuxbox-OS=${MACHINEBUILD}"
 
 TUXBOX_FLASH_USES_OFGWRITE = "${@'1' if (d.getVar('TUXBOX_FLASH_BACKEND') or '').strip() == 'ofgwrite' else '0'}"
 
@@ -60,6 +61,9 @@ python __anonymous() {
     ).strip()
     active_slot_source = (
         d.getVar("TUXBOX_FLASH_ACTIVE_SLOT_SOURCE") or ""
+    ).strip()
+    archive_name_prefixes = (
+        d.getVar("TUXBOX_FLASH_ARCHIVE_NAME_PREFIXES") or ""
     ).strip()
 
     if not backend:
@@ -117,4 +121,6 @@ python __anonymous() {
         bb.fatal("TUXBOX_FLASH_ACTIVE_SLOT_SOURCE is empty")
     if not script_branch:
         bb.fatal("TUXBOX_FLASH_SCRIPT_GIT_BRANCH is empty")
+    if not archive_name_prefixes:
+        bb.fatal("TUXBOX_FLASH_ARCHIVE_NAME_PREFIXES is empty")
 }

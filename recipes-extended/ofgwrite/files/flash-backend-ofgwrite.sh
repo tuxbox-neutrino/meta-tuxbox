@@ -11,6 +11,8 @@ UNZIP_BIN="${FLASH_UNZIP_BIN:-unzip}"
 IMAGE_BASE_OVERRIDE="${FLASH_IMAGE_BASE_OVERRIDE:-}"
 ALLOW_ACTIVE_SLOT="${FLASH_ALLOW_ACTIVE_SLOT:-}"
 BACKUP_BEFORE_ANY_FLASH="${FLASH_BACKUP_BEFORE_ANY_FLASH:-}"
+RESTORE_SETTINGS="${FLASH_RESTORE_SETTINGS:-}"
+INJECT_BACKUP_TO_TARGET="${FLASH_INJECT_BACKUP_TO_TARGET:-}"
 ACTIVE_SLOT_REQUIRE_BACKUP="${FLASH_ACTIVE_SLOT_REQUIRE_BACKUP:-}"
 ACTIVE_SLOT_BACKUP_DIR="${FLASH_ACTIVE_SLOT_BACKUP_DIR:-}"
 ACTIVE_SLOT_BACKUP_NAME_PREFIX="${FLASH_ACTIVE_SLOT_BACKUP_NAME_PREFIX:-settings-before-flash-slot}"
@@ -48,6 +50,12 @@ if [ -z "${ACTIVE_SLOT_REQUIRE_BACKUP}" ]; then
 fi
 if [ -z "${BACKUP_BEFORE_ANY_FLASH}" ]; then
 	BACKUP_BEFORE_ANY_FLASH="${FLASH_BACKUP_BEFORE_ANY_FLASH_DEFAULT:-1}"
+fi
+if [ -z "${RESTORE_SETTINGS}" ]; then
+	RESTORE_SETTINGS="${FLASH_RESTORE_SETTINGS_DEFAULT:-1}"
+fi
+if [ -z "${INJECT_BACKUP_TO_TARGET}" ]; then
+	INJECT_BACKUP_TO_TARGET="${FLASH_INJECT_BACKUP_TO_TARGET_DEFAULT:-1}"
 fi
 if [ -z "${ACTIVE_SLOT_BACKUP_DIR}" ]; then
 	ACTIVE_SLOT_BACKUP_DIR="${FLASH_OFGWRITE_ACTIVE_SLOT_BACKUP_DIR_DEFAULT:-/var/volatile/flash-backup}"
@@ -321,15 +329,22 @@ EOF
 
 build_inject_args() {
 	inject_args=""
+	if [ "${INJECT_BACKUP_TO_TARGET}" != "1" ]; then
+		if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
+			log "target backup injection disabled for this flash"
+		fi
+		printf '%s\n' "${inject_args}"
+		return 0
+	fi
 	if [ -n "${ACTIVE_SLOT_BACKUP_FILE}" ] && [ -f "${ACTIVE_SLOT_BACKUP_FILE}" ]; then
 		inject_args=" --inject-backup=${ACTIVE_SLOT_BACKUP_FILE}"
-		if [ -f "${RESTORE_HELPER}" ]; then
-			inject_args="${inject_args} --inject-restore-helper=${RESTORE_HELPER}"
-		fi
-		if [ -f "${RESTORE_SERVICE}" ]; then
-			inject_args="${inject_args} --inject-restore-service=${RESTORE_SERVICE}"
-		fi
 		if [ -n "${ACTIVE_SLOT_BACKUP_MARKER}" ] && [ -f "${ACTIVE_SLOT_BACKUP_MARKER}" ]; then
+			if [ -f "${RESTORE_HELPER}" ]; then
+				inject_args="${inject_args} --inject-restore-helper=${RESTORE_HELPER}"
+			fi
+			if [ -f "${RESTORE_SERVICE}" ]; then
+				inject_args="${inject_args} --inject-restore-service=${RESTORE_SERVICE}"
+			fi
 			inject_args="${inject_args} --inject-marker=${ACTIVE_SLOT_BACKUP_MARKER}"
 		fi
 	fi
@@ -405,6 +420,12 @@ run_pre_flash_backup() {
 	log "creating settings backup before flashing slot ${slot}: ${backup_file}"
 	"${backup_cmd}" "${ACTIVE_SLOT_BACKUP_DIR}" "${backup_name}" || fail "pre-flash backup command failed"
 	[ -s "${backup_file}" ] || fail "pre-flash backup archive missing or empty: ${backup_file}"
+	ACTIVE_SLOT_BACKUP_FILE="${backup_file}"
+
+	if [ "${RESTORE_SETTINGS}" != "1" ]; then
+		log "settings restore disabled for this flash; backup will be injected without restore marker"
+		return 0
+	fi
 
 	# Write restore-pending marker JSON alongside tarball. ofgwrite
 	# --inject-marker copies it into ${new_rootfs}/etc/neutrino/
@@ -425,7 +446,6 @@ run_pre_flash_backup() {
   "created_utc": "${backup_iso}"
 }
 EOF
-	ACTIVE_SLOT_BACKUP_FILE="${backup_file}"
 	ACTIVE_SLOT_BACKUP_MARKER="${marker_file}"
 	log "restore marker written: ${marker_file} (bytes=${backup_bytes})"
 }
@@ -582,6 +602,8 @@ fi
 validate_bool "FLASH_ALLOW_ACTIVE_SLOT" "${ALLOW_ACTIVE_SLOT}"
 validate_bool "FLASH_ACTIVE_SLOT_REQUIRE_BACKUP" "${ACTIVE_SLOT_REQUIRE_BACKUP}"
 validate_bool "FLASH_BACKUP_BEFORE_ANY_FLASH" "${BACKUP_BEFORE_ANY_FLASH}"
+validate_bool "FLASH_RESTORE_SETTINGS" "${RESTORE_SETTINGS}"
+validate_bool "FLASH_INJECT_BACKUP_TO_TARGET" "${INJECT_BACKUP_TO_TARGET}"
 validate_bool "FLASH_BACKEND_TRACE_ENABLE" "${TRACE_ENABLE}"
 if [ -n "${MACHINE_CAP_OFGWRITE}" ] && [ "${MACHINE_CAP_OFGWRITE}" != "1" ]; then
 	fail "machine profile marks Ofgwrite unsupported (FLASH_MACHINE_CAP_OFGWRITE=${MACHINE_CAP_OFGWRITE})"
@@ -595,7 +617,7 @@ case "${ACTIVE_SLOT_BACKUP_DIR}" in
 esac
 trace_init
 trace "invocation: slot=${slot} source_mode='${source_mode}' force_arg='${force_arg}'"
-trace "config: allow_active=${ALLOW_ACTIVE_SLOT} backup_before_any=${BACKUP_BEFORE_ANY_FLASH} require_backup=${ACTIVE_SLOT_REQUIRE_BACKUP} stop_neutrino=${STOP_NEUTRINO_BEFORE_FLASH} rootfs_prefix=${ROOTFS_SUBDIR_PREFIX}"
+trace "config: allow_active=${ALLOW_ACTIVE_SLOT} backup_before_any=${BACKUP_BEFORE_ANY_FLASH} restore_settings=${RESTORE_SETTINGS} inject_backup_to_target=${INJECT_BACKUP_TO_TARGET} require_backup=${ACTIVE_SLOT_REQUIRE_BACKUP} stop_neutrino=${STOP_NEUTRINO_BEFORE_FLASH} rootfs_prefix=${ROOTFS_SUBDIR_PREFIX}"
 trace_runtime_snapshot
 ensure_not_active_slot "${slot}"
 cleanup_stale_ofgwrite_runtime
