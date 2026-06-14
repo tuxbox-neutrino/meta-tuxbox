@@ -3,6 +3,18 @@
 # Generates /etc/image-version during rootfs post-processing and creates
 # /.version as compatibility symlink.
 
+METAVERSION_LAYER_BASENAME ?= "meta-tuxbox"
+
+inherit metaversion
+
+# Image-scoped user-visible version. DISTRO_VERSION and recipe PV stay at the
+# Yocto/OE base version; the meta-tuxbox commit count is appended for images.
+TUXBOX_IMAGE_BASE_VERSION ?= "${DISTRO_VERSION}"
+TUXBOX_IMAGE_PATCH_VERSION ?= "${META_VERSION}"
+TUXBOX_IMAGE_PATCH_SOURCE ?= "${METAVERSION_LAYER_BASENAME}"
+TUXBOX_IMAGE_VERSION ?= "${TUXBOX_IMAGE_BASE_VERSION}.${TUXBOX_IMAGE_PATCH_VERSION}"
+IMAGE_VERSION = "${TUXBOX_IMAGE_VERSION}"
+
 # Build stamp used in image-version metadata.
 TUXBOX_IMAGEBUILD ??= "${DATETIME}"
 TUXBOX_IMAGEBUILD[vardepsexclude] = "DATETIME"
@@ -36,6 +48,45 @@ TUXBOX_VERSION_GIT_REF ?= "HEAD"
 
 ROOTFS_POSTPROCESS_COMMAND += "tuxbox_generate_version_info; "
 IMAGE_POSTPROCESS_COMMAND += "tuxbox_generate_feed_metadata; "
+
+def tuxbox_meta_version_fields(d, warn=False):
+    import bb
+
+    def _safe(value, default=""):
+        if value is None:
+            return default
+        value = str(value).strip()
+        return value if value else default
+
+    image_base_version = _safe(
+        d.getVar("TUXBOX_IMAGE_BASE_VERSION"),
+        _safe(d.getVar("DISTRO_VERSION")),
+    )
+    image_patch_version = _safe(d.getVar("TUXBOX_IMAGE_PATCH_VERSION"))
+    image_patch_source = _safe(d.getVar("TUXBOX_IMAGE_PATCH_SOURCE"), "meta-tuxbox")
+    meta_hash = _safe(get_meta_git_hash(d))
+    meta_describe = _safe(get_meta_git_describe(d))
+    meta_dirty = _safe(get_meta_git_dirty(d), "0")
+
+    # Emitted from the do_rootfs caller only (warn=True) so the warning fires
+    # once per build; do_image reuses the same fields without re-warning.
+    if warn and meta_dirty == "1":
+        bb.warn(
+            "tuxbox-version: %s working tree is dirty; "
+            "image_version remains numeric" % image_patch_source
+        )
+
+    fields = [
+        ("image_base_version", image_base_version),
+        ("image_patch_version", image_patch_version),
+        ("image_patch_source", image_patch_source),
+        ("meta_tuxbox_dirty", meta_dirty),
+    ]
+    if meta_hash:
+        fields.append(("meta_tuxbox_git_hash", meta_hash))
+    if meta_describe:
+        fields.append(("meta_tuxbox_describe", meta_describe))
+    return fields
 
 python tuxbox_generate_version_info() {
     import os
@@ -130,6 +181,8 @@ python tuxbox_generate_version_info() {
     else:
         git_describe = _git_read(git_repo, "describe", "--always", "--tags", git_ref)
 
+    meta_version_fields = tuxbox_meta_version_fields(d, warn=True)
+
     lines = [
         ("distro", distro),
         ("distro_name", distro_name),
@@ -142,6 +195,7 @@ python tuxbox_generate_version_info() {
         ("imagedescription", image_description),
         ("image_name", image_name),
         ("image_version", image_version),
+        *meta_version_fields,
         ("image_file_name", image_file_name),
         ("flash_backend", flash_backend),
         ("channel", channel),
@@ -155,7 +209,7 @@ python tuxbox_generate_version_info() {
         # Compatibility keys expected by older scripts/plugins
         ("builddate", build_date),
         ("imagename", image_basename),
-        ("imageversion", distro_version),
+        ("imageversion", image_version),
     ]
 
     if git_hash:
@@ -368,6 +422,8 @@ python tuxbox_generate_feed_metadata() {
     else:
         git_describe = _git_read(git_repo, "describe", "--always", "--tags", git_ref)
 
+    meta_version_fields = tuxbox_meta_version_fields(d)
+
     manifest = {
         "schema_version": 1,
         "channel": channel,
@@ -383,6 +439,8 @@ python tuxbox_generate_feed_metadata() {
         "image_description": image_description,
         "files": files,
     }
+    for key, value in meta_version_fields:
+        manifest[key] = value
 
     if git_hash:
         manifest["git_hash"] = git_hash
