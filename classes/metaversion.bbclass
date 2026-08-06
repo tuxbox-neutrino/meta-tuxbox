@@ -175,3 +175,12 @@ def get_meta_git_dirty(d):
     return value
 
 META_VERSION ??= "${@get_meta_version(d)}"
+
+# get_meta_version() memoizes into the datastore, so the variable references it
+# records depend on whether the cache was already populated when the expansion
+# happened. Cooker and worker hit that in different order and BitBake then
+# reports a changed basehash on reparse for every task that sees IMAGE_VERSION.
+# Hash the resolved commit count instead of the machinery that produces it: the
+# value still changes with every layer commit, which is what images must react
+# to, but it no longer depends on expansion order.
+META_VERSION[vardepvalue] = "${META_VERSION}"
