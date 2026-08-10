@@ -8,4 +8,10 @@
 # EXTRA_OECONF; ":append" applies regardless of bbappend parse order.
 EXTRA_FFCONF:append = " --enable-encoder=mpeg2video"
 
-PR:append = ".1"
+# .2: libbluray moved its soname from .so.3 to .so.4. libavformat58 is the
+# only consumer in our images, and it was rebuilt against the new soname
+# without a version change - so opkg saw "same version, already installed",
+# kept the stale file and left every box with a Neutrino that cannot start
+# after the next reboot. Bumping PR is what actually ships the rebuilt
+# libraries. Do the same whenever a dependency changes its soname.
+PR:append = ".2"
