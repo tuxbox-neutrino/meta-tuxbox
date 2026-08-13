@@ -82,4 +82,4 @@ FILES:${PN}:append = " \
 SYSTEMD_SERVICE:${PN} = "tuxbox-flash-restore.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-PR:append = ".16"
+PR:append = ".17"

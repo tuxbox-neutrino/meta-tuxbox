@@ -211,6 +211,79 @@ verify_active_slot_runtime_prereqs() {
 	fi
 }
 
+netfs_type_of_path() {
+	# Print the filesystem type of the mount a path lives on
+	# (longest-prefix match against /proc/mounts).
+	awk -v p="$1" '
+		{
+			mp = $2
+			if (mp == "/" || (index(p, mp) == 1 && (length(p) == length(mp) || substr(p, length(mp) + 1, 1) == "/"))) {
+				if (length(mp) >= best_len) { best_len = length(mp); best = $3 }
+			}
+		}
+		END { print best }
+	' /proc/mounts 2>/dev/null || true
+}
+
+stage_image_dir_if_network() {
+	# The active-slot flash stops network and services during pivot_root.
+	# A payload directory on a hard network mount then blocks the first
+	# tar read forever (seen live on H7, 2026-08-13). Stage it to /tmp
+	# while the network is still up.
+	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
+
+	# An automount placeholder only reveals the real filesystem after a
+	# first access; trigger it, then classify.
+	ls "${image_dir}" >/dev/null 2>&1 || true
+	src_fstype="$(netfs_type_of_path "${image_dir}")"
+
+	case "${src_fstype}" in
+		nfs|nfs4|cifs|smb3|autofs)
+			;;
+		*)
+			trace "image dir fstype='${src_fstype:-unknown}': local, no staging needed"
+			return 0
+			;;
+	esac
+
+	need_kb="$(du -sk "${image_dir}" 2>/dev/null | awk '{print $1}')"
+	[ -n "${need_kb}" ] || fail "cannot size image dir for staging: ${image_dir}"
+	need_kb=$((need_kb + need_kb / 10))
+	avail_kb="$(df -Pk /tmp 2>/dev/null | awk 'NR == 2 { print $4 }')"
+	[ -n "${avail_kb}" ] || fail "cannot determine free space in /tmp"
+	if [ "${need_kb}" -gt "${avail_kb}" ]; then
+		fail "image dir is on ${src_fstype}; staging needs ${need_kb} kB in /tmp but only ${avail_kb} kB are free"
+	fi
+
+	staging_dir="/tmp/flash-staging-slot${slot}"
+	log "Image source is on ${src_fstype}; staging to ${staging_dir} before the flash"
+	trace "staging image dir '${image_dir}' (${src_fstype}, ${need_kb} kB incl. margin) to ${staging_dir} (${avail_kb} kB free)"
+	rm -rf "${staging_dir}"
+	mkdir -p "${staging_dir}"
+	cp -a "${image_dir}/." "${staging_dir}/" || fail "staging copy to ${staging_dir} failed"
+	image_dir="${staging_dir}"
+	trace "image dir staged to ${image_dir}"
+}
+
+detach_network_mounts() {
+	# A dead network mount left in the tree blocks the post-pivot
+	# sync/inject phase even when the payload itself is local (second
+	# facet of the same H7 incident). Stop the automounter (it would
+	# remount on access) and lazily detach every network filesystem;
+	# the next boot restores them regularly.
+	[ "${TARGET_IS_ACTIVE_SLOT}" = "1" ] || return 0
+
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl stop autofs >/dev/null 2>&1 || true
+	fi
+
+	awk '$3 == "nfs" || $3 == "nfs4" || $3 == "cifs" || $3 == "smb3" { print $2 }' /proc/mounts 2>/dev/null | \
+		while IFS= read -r mp; do
+			trace "detaching network mount ${mp}"
+			umount -l "${mp}" >/dev/null 2>&1 || trace "lazy umount failed for ${mp}"
+		done
+}
+
 active_slot_from_cmdline() {
 	cmdline="$(cat "${PROC_CMDLINE_FILE}" 2>/dev/null || true)"
 	case "${cmdline}" in
@@ -702,6 +775,8 @@ else
 	fi
 fi
 
+stage_image_dir_if_network
+
 [ -x "${BACKEND_PREFLIGHT_BIN}" ] || fail "preflight command not executable: ${BACKEND_PREFLIGHT_BIN}"
 trace "resolved mode=${mode} image_base='${image_base}' image_dir='${image_dir}'"
 trace_image_payload "${image_dir}"
@@ -711,6 +786,7 @@ trace "running preflight: ${BACKEND_PREFLIGHT_BIN} --backend ofgwrite --slot ${s
 check_pre_flash_backup_prereqs
 stop_frontend_runtime
 run_pre_flash_backup
+detach_network_mounts
 
 if start_active_slot_systemd_flash; then
 	exit 0
