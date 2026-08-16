@@ -17,7 +17,7 @@ SRC_URI = " \
 	file://flash-backend-script.sh \
 "
 
-PR = "r30"
+PR = "r31"
 PV = "0.1+git${SRCPV}"
 PKGV = "0.1+git${GITPKGV}"
 SRCREV = "${AUTOREV}"
