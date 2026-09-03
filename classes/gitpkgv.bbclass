@@ -99,12 +99,32 @@ def _gitpkgv_repo_has_tags(d, vars):
 
     try:
         refs = bb.fetch2.runfetchcmd(
-            "git --git-dir=%(repodir)s for-each-ref --count=1 --format='%(refname)' refs/tags 2>/dev/null"
+            "git --git-dir=%(repodir)s for-each-ref --count=1 --format='%%(refname)' refs/tags 2>/dev/null"
             % vars,
             d,
             quiet=True,
         ).strip()
         return bool(refs)
+    except Exception:
+        return False
+
+def _gitpkgv_rev_available(d, vars):
+    """True when the revision exists in the local mirror.
+
+    AUTOREV resolves against the remote at parse time while the mirror can
+    still be at an older state, so git describe fails on a revision that is
+    simply not fetched yet.  That is transient -- the value is recomputed
+    after do_fetch -- and must not be reported as a missing-tag condition.
+    """
+    import bb
+
+    try:
+        bb.fetch2.runfetchcmd(
+            "git --git-dir=%(repodir)s cat-file -e %(rev)s^{commit} 2>/dev/null" % vars,
+            d,
+            quiet=True,
+        )
+        return True
     except Exception:
         return False
 
@@ -312,16 +332,22 @@ def get_git_pkgv(d, use_tags):
                             tag = gitpkgv_drop_tag_prefix(d, output)
                             ver = "%s%s%s+%s" % (tag, prefix, commits, rev_short)
                     except Exception:
-                        has_tags = _gitpkgv_repo_has_tags(d, vars)
-                        if (not has_tags) and d.getVar("GITPKGVTAG_NO_WARN_ON_NO_TAG") != "1":
-                            bb.warn(
-                                "%s: Missing Git tags, falling back to generated GITPKGVTAG value."
-                                % (d.getVar("PN") or "unknown")
-                            )
-                        elif has_tags:
+                        pn = d.getVar("PN") or "unknown"
+                        if not _gitpkgv_rev_available(d, vars):
                             bb.note(
-                                "git describe failed; using generated GITPKGVTAG fallback for %s"
-                                % (d.getVar("PN") or "unknown")
+                                "%s: revision not in the local mirror yet; "
+                                "GITPKGVTAG is recomputed after do_fetch" % pn
+                            )
+                        elif not _gitpkgv_repo_has_tags(d, vars):
+                            if d.getVar("GITPKGVTAG_NO_WARN_ON_NO_TAG") != "1":
+                                bb.warn(
+                                    "%s: Missing Git tags, falling back to generated "
+                                    "GITPKGVTAG value." % pn
+                                )
+                        else:
+                            bb.warn(
+                                "%s: git describe failed although the repository has "
+                                "tags; PKGV falls back below the tag-based version." % pn
                             )
                         ver = _gitpkgv_tag_fallback(d, commits, rev_short)
                 else:
