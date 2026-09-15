@@ -7,7 +7,8 @@ After=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=@SBINPATH@/mount.all.davfs
-# ExecStopPost also cleans successful mounts after a partially failed start.
+ExecStop=@SBINPATH@/umount.all.davfs
+# ExecStopPost also cleans mounts left behind by a partially failed start.
 ExecStopPost=@SBINPATH@/umount.all.davfs
 
 [Install]

@@ -18,10 +18,10 @@ def archive(member):
 
 with archive('control.tar.gz') as control, archive('data.tar.xz') as data:
     metadata = control.extractfile('./control').read().decode()
-    assert 'Version: 1.7.3-r0.1\n' in metadata, metadata
+    assert 'Version: 1.7.3-r0.2\n' in metadata, metadata
     assert 'Source: davfs2_1.5.4.bb\n' in metadata
     assert 'kernel-module-fuse' in metadata and 'kernel-module-coda' not in metadata
-    assert 'util-linux-findmnt' in metadata and 'bash' in metadata
+    assert all(dep in metadata for dep in ('bash', 'curl', 'util-linux-findmnt'))
     conffiles = control.extractfile('./conffiles').read().decode().splitlines()
     assert set(conffiles) == {'/etc/davfs2/davfs2.conf', '/etc/davfs2/secrets', '/etc/davfs2/davfs2.mount.list'}
     assert data.getmember('./etc/davfs2/secrets').mode == 0o600
@@ -44,6 +44,7 @@ with archive('control.tar.gz') as control, archive('data.tar.xz') as data:
     if args.init == 'systemd':
         unit = data.extractfile('./lib/systemd/system/davfs2.service').read().decode()
         assert 'Wants=network-online.target' in unit and 'After=network-online.target' in unit
+        assert 'ExecStop=/usr/sbin/umount.all.davfs' in unit
         assert 'ExecStopPost=/usr/sbin/umount.all.davfs' in unit
         assert '@SBINPATH@' not in unit
     else:

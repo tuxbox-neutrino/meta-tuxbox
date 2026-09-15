@@ -27,6 +27,8 @@ if name == 'findmnt':
         print(value)
         sys.exit(0)
     sys.exit(1)
+if name == 'curl' and args[-1] in json.loads(os.environ.get('UNREACHABLE_URLS', '[]')):
+    sys.exit(7)
 if name in ('mount.davfs', 'umount', 'mkdir'):
     # A child cannot consume subsequent mount-list entries or prompt a user.
     if name != 'mkdir':
@@ -39,10 +41,11 @@ sys.exit(0)
 
 
 class MountListTests(unittest.TestCase):
-    def run_case(self, content, action='mount', mounts=None, fail=(), table_fail=False):
+    def run_case(self, content, action='mount', mounts=None, fail=(),
+                 table_fail=False, unreachable=()):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            for name in ('findmnt', 'mkdir', 'mount.davfs', 'umount'):
+            for name in ('curl', 'findmnt', 'mkdir', 'mount.davfs', 'umount'):
                 p = root / name
                 p.write_text(MOCK)
                 p.chmod(0o755)
@@ -52,7 +55,8 @@ class MountListTests(unittest.TestCase):
             calls = root / 'calls'
             env = dict(os.environ, PATH=f'{root}:' + os.environ['PATH'],
                        CALLS=str(calls), MOUNTS=json.dumps(mounts or {}),
-                       FAIL_POINTS=json.dumps(list(fail)))
+                       FAIL_POINTS=json.dumps(list(fail)),
+                       UNREACHABLE_URLS=json.dumps(list(unreachable)))
             if table_fail:
                 env['TABLE_FAIL'] = '1'
             result = subprocess.run(['bash', '-c', 'source "$1"; davfs_run "$2" "$3"',
@@ -78,6 +82,13 @@ class MountListTests(unittest.TestCase):
         self.assertEqual(p.returncode, 1)
         self.assertEqual(len(calls), 2)
         self.assertIn('1 completed, 0 skipped, 1 failed', p.stdout)
+
+    def test_unreachable_server_is_rejected_before_mount(self):
+        p, calls = self.run_case('https://example/a /mnt/a\n',
+                                 unreachable=['https://example/a'])
+        self.assertEqual(p.returncode, 1)
+        self.assertEqual(calls, [])
+        self.assertIn('WebDAV server is not reachable', p.stderr)
 
     def test_existing_correct_mount_is_skipped(self):
         p, calls = self.run_case('https://example/a /mnt/a\n', mounts={'/mnt/a': 'https://example/a fuse.davfs'})

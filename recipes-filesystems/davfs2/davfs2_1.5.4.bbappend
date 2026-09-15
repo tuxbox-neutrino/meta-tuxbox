@@ -1,6 +1,6 @@
 # Bound to the OE-Alliance filename so a base-recipe update requires review.
 PV = "1.7.3"
-PR:append = ".1"
+PR:append = ".2"
 HOMEPAGE = "https://github.com/alisarctl/davfs2"
 LICENSE = "GPL-3.0-or-later & MIT"
 LIC_FILES_CHKSUM:append = " file://${WORKDIR}/mount.all.davfs;beginline=3;endline=21;md5=1726f2cbf4a18e16b9863fb05376ae25"
@@ -16,7 +16,7 @@ SRC_URI[sha256sum] = "a5368161eb5055651d7e5e8180c1606da95e78c941b6bb8a9286df7923
 
 inherit systemd
 SYSTEMD_SERVICE:${PN} = "davfs2.service"
-RDEPENDS:${PN} += "bash util-linux-findmnt"
+RDEPENDS:${PN} += "bash curl util-linux-findmnt"
 RRECOMMENDS:${PN}:remove = "kernel-module-coda"
 RRECOMMENDS:${PN}:append = " kernel-module-fuse"
 CONFFILES:${PN} += "${sysconfdir}/davfs2/davfs2.mount.list"

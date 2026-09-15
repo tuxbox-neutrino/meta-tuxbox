@@ -63,6 +63,10 @@ davfs_run() {
             fi
         elif [[ $action == umount ]]; then
             ((skipped += 1))
+        elif ! curl --insecure --silent --output /dev/null \
+                   --connect-timeout 5 --max-time 10 --request OPTIONS -- "$url"; then
+            echo "davfs2: line $number: WebDAV server is not reachable." >&2
+            ((failed += 1))
         elif mkdir -p -- "$point" >/dev/null 2>&1 &&
              mount.davfs "$url" "$point" </dev/null >/dev/null 2>&1; then
             ((completed += 1))
