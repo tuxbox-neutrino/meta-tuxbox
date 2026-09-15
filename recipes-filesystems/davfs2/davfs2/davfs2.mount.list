@@ -1,23 +1,7 @@
-# davfs2 Mount Configuration List
-#
-# This file contains a list of WebDAV shares to be mounted.
-# Each line represents one mount point and follows the format:
-# WebDAV-URL local_mount_point
-#
-# Replace 'WebDAV-URL' with the URL of the WebDAV share and
-# 'local_mount_point' with the path where the WebDAV filesystem should be mounted.
-# Example:
-# https://example.com/webdav /mnt/webdav_example
-# 
-# You can add 'ignore_cert' in the third column to ignore certificates,
-# but this is not recommended if you are not sure the server is reputable,
-# but can be useful with self-generated certificates.
-# Note: This is also just a hack, because mount.davfs may not work properly in this environment.
-#
-# Examples:
-# https://example.com/webdav /mnt/webdav_example ignore_cert
-# https://nextcloud.myserver.com/remote.php/dav/files/Username1 /mnt/dav1 ignore_cert
-# https://nextcloud.myserver.com/remote.php/dav/files/Username1 /mnt/dav3
-# https://owncloud.myserver.com/remote.php/dav/files/Username2 /mnt/dav4
-# https://192.168.1.27:3443/remote.php/dav/files/demo /mnt/dav/my-cloud ignore_cert
-
+# Optional WebDAV mounts: HTTP(S)-URL absolute_mountpoint
+# Blank lines and comments (including indented comments) are ignored.
+# Exactly two whitespace-separated fields; no whitespace within either field.
+# Store credentials in /etc/davfs2/secrets, never in the URL.
+# Configure trust_ca_cert or trust_server_cert in davfs2.conf as needed.
+# The former ignore_cert option is rejected; it never accepts a certificate.
+# https://cloud.example.com/remote.php/dav/files/username /mnt/dav/cloud
