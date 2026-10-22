@@ -1,7 +1,13 @@
 # Upstream yt-dlp moved to pyproject/hatchling, while the OE-A recipe still
 # inherits setuptools3. Build and ship yt-dlp's standalone zipapp entrypoint.
 
-PR:append = ".1"
+# The OE-A recipe follows yt-dlp master via AUTOREV. Right after release
+# 2026.10.21, upstream removed Python 3.10 support (3d28cf4780), and
+# kirkstone ships Python 3.10, so master no longer builds. Stay on the last
+# release that supports it until the image moves to Python >= 3.11.
+SRCREV = "6ccd977303412151ee23352c6257dd658ffc1987"
+
+PR:append = ".2"
 
 do_compile() {
 	cd ${S}
