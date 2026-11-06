@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425
 
 include lcd4linux.inc tuxbox.inc
 
-RDEPENDS_${PN} = "lcd4linux"
+RDEPENDS:${PN} = "lcd4linux"
 
 SRC_URI = "git://github.com/horsti58/SamsungLCD4Linux;protocol=https;branch=master \
 "
@@ -13,7 +13,7 @@ PATCHTOOL = "git"
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
-PR = "r2"
+PR = "r3"
 
 
 do_configure() {
@@ -36,6 +36,6 @@ do_install() {
 	chmod 600 ${D}/${sysconfdir}/lcd4linux.conf
 }
 
-FILES_${PN} += "/usr \
+FILES:${PN} += "/usr \
 		/etc \
 " 

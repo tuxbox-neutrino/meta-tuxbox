@@ -17,21 +17,13 @@ include lcd4linux.inc
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
-PR = "r4"
+PR = "r5"
 S =  "${WORKDIR}/git"
 
 addtask setlibtool before do_configure after do_patch
 
 do_setlibtool() {
     sed -i "s#LIBTOOL=libtool#LIBTOOL=\${STAGING_BINDIR_CROSS}\/\${HOST_SYS}-libtool#" ${S}/Makefile.am
-}
-
-do_setlibtool_arm (){
-    sed -i "s#LIBTOOL=libtool#LIBTOOL=\${STAGING_BINDIR_CROSS}\/arm-oe-linux-gnueabi-libtool#" ${S}/Makefile.am
-}
-
-do_setlibtool_aarch64 (){
-    perl -pi -e "s#LIBTOOL=libtool#LIBTOOL=\${STAGING_BINDIR_CROSS}\/aarch64-oe-linux-libtool#" ${S}/Makefile.am
 }
 
 EXTRA_OECONF += "\
