@@ -1,26 +1,13 @@
 ###
-### fix up a few things in tzdata_2013i:
-### * /etc/timezone is not marked as config file
-### * /etc/localtime symlink is packaged and not marked as config file
+### /etc/localtime is not packaged: Neutrino replaces the link whenever its
+### time zone setting is applied, and a link is never a config file, so a
+### link in tzdata-core would be written again on every package upgrade.
+### The image creates the link from DEFAULT_TIMEZONE in
+### tuxbox_rootfs_postprocess (tuxbox-image.inc).
 ###
-### instead of packaging the symlink, create it in postinst
-### (symlinks marked as config are converted to files during update,
-### probably an opkg bug...)
 
-CONFFILES_${PN} += " \
-	${sysconfdir}/timezone \
-	"
-
-PR:append = ".1"
+PR:append = ".2"
 
 do_install:append () {
-	# rather create in postinst than package it...
 	rm ${D}${sysconfdir}/localtime
-}
-
-# this depends on the implementation of the original .bb file...
-pkg_postinst_${PN}:append () {
-	if [ ! -e "${etc_lt}" ]; then
-		ln -s "${datadir}/zoneinfo/${tz}" "${etc_lt}"
-	fi
 }
