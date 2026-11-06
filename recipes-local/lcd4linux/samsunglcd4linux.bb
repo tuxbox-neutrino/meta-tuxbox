@@ -13,11 +13,19 @@ PATCHTOOL = "git"
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
-PR = "r1"
+PR = "r2"
 
 
 do_configure() {
 	sed -i "s|\/var\/lcd|\/usr\/share\/lcd|" ${S}/etc/lcd4linux.conf
+	# Neutrino writes the line of the later forecast (2 today, 3 tomorrow)
+	# to /tmp/lcd/weather_later, decided in the box's time zone; lcd4linux
+	# keeps the zone it was started with, so its own clock is not asked.
+	sed -i -E "s#strftime\('%H', *time\(\)\) *< *16 *\? *2 *: *3#file::readline('/tmp/lcd/weather_later', 1)#g" ${S}/etc/lcd4linux.conf
+	if grep -q -E "strftime\('%H', *time\(\)\) *[<>]" ${S}/etc/lcd4linux.conf || \
+	   [ "$(grep -c "/tmp/lcd/weather_later" ${S}/etc/lcd4linux.conf)" -ne 2 ]; then
+		bbfatal "lcd4linux.conf: the later forecast is no longer chosen as expected, adjust the replacement"
+	fi
 }
 
 do_install() {
