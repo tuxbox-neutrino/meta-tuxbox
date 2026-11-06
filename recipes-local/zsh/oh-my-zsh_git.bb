@@ -8,7 +8,7 @@ SECTION = "base/shell"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=a3d89f44b0b29ba4bd48cf7cf62bc9c3"
 
-RDEPENDS_${PN} = "zsh"
+RDEPENDS:${PN} = "zsh"
 
 SRC_URI = "git://github.com/robbyrussell/oh-my-zsh.git;protocol=https;branch=master \
 	   file://zshrc \
@@ -16,7 +16,7 @@ SRC_URI = "git://github.com/robbyrussell/oh-my-zsh.git;protocol=https;branch=mas
 
 SRCREV = "852a44094a3bb4df39f8f778bc7ada2ddda09727"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -26,6 +26,6 @@ do_install () {
 	cp -rf ${WORKDIR}/zshrc ${D}${sysconfdir}/zsh/zshrc
 }
 
-FILES_${PN} = "/home \
+FILES:${PN} = "/home \
 	       /etc \
 "

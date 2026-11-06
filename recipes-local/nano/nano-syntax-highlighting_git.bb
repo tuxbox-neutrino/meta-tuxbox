@@ -3,12 +3,13 @@ HOMEPAGE = "http://www.nano-editor.org/"
 LICENSE = "GPL-3.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0;md5=c79ff39f19dfec6d293b95dea7b07891"
 SECTION = "console/utils"
-RDEPENDS_${PN} = "nano"
+RDEPENDS:${PN} = "nano"
 
 SRC_URI = "git://github.com/scopatz/nanorc.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
+PR = "r1"
 
 S = "${WORKDIR}/git"
 
@@ -17,4 +18,4 @@ do_install(){
 	install -m 644 ${S}/*.nanorc ${D}${datadir}/nano
 }
 
-FILES_${PN} += "/usr/share/nano"
+FILES:${PN} += "/usr/share/nano"

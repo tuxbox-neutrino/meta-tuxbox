@@ -6,14 +6,14 @@ SECTION = "base/shell"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=36e39d585ac11b6fba262a822e7135d5"
 
-RDEPENDS_${PN} = "zsh"
+RDEPENDS:${PN} = "zsh"
 
 SRC_URI = "git://github.com/zsh-users/zsh-autosuggestions.git;protocol=https;branch=master \
 "
 
 SRCREV = "ae315ded4dba10685dbbafbfa2ff3c1aefeb490d"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -22,5 +22,5 @@ do_install () {
 	cp -rf ${S}/* ${D}/home/root/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 }
 
-FILES_${PN} = "/home \
+FILES:${PN} = "/home \
 "

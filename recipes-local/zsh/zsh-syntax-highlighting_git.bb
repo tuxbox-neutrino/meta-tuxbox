@@ -6,14 +6,14 @@ SECTION = "base/shell"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://COPYING.md;md5=6b68a3be44eb63fbb43b432b64139138"
 
-RDEPENDS_${PN} = "zsh"
+RDEPENDS:${PN} = "zsh"
 
 SRC_URI = "git://github.com/zsh-users/zsh-syntax-highlighting.git;protocol=https;branch=master \
 "
 
 SRCREV = "932e29a0c75411cb618f02995b66c0a4a25699bc"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -26,5 +26,5 @@ do_install () {
 	cp -rf ${S}/highlighters ${D}/home/root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 }
 
-FILES_${PN} = "/home \
+FILES:${PN} = "/home \
 "

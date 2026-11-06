@@ -11,6 +11,7 @@ SRC_URI = "git://github.com/powerline/fonts.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
+PR = "r1"
 
 S = "${WORKDIR}/git"
 
@@ -19,4 +20,4 @@ do_install () {
 	cp ${S}/Terminus/PSF/* ${D}${datadir}/consolefonts
 }
 
-FILES_${PN} = "/usr/share/consolefonts"
+FILES:${PN} = "/usr/share/consolefonts"
