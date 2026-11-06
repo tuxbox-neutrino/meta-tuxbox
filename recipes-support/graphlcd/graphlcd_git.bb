@@ -2,6 +2,7 @@ DESCRIPTION = "graphlcd"
 PRIORITY = "optional"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=393a5ca445f6965873eca0259a17f833"
+PR = "r1"
 
 DEPENDS = "freetype fontconfig"
 
@@ -32,8 +33,8 @@ do_install:append() {
 	mv ${D}/include ${D}/usr/include
 }
 
-FILES_${PN} = "/usr/bin /usr/lib /etc"
-FILES_${PN}-dev = "/usr/include"
+FILES:${PN} = "/usr/bin /usr/lib /etc"
+FILES:${PN}-dev = "/usr/include"
 
-INSANE_SKIP_${PN} = "dev-so"
+INSANE_SKIP:${PN} = "dev-so"
 

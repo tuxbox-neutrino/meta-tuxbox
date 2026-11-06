@@ -4,8 +4,8 @@ SECTION = "libs"
 LICENSE = "Artistic-1.0 | GPL-1.0+"
 LIC_FILES_CHKSUM = "file://README;md5=8c11a6fcccff2c21bbbd34543655908d"
 DEPENDS = "libpam"
-RDEPENDS_${PN} = "perl-module-posix"
-PR = "r2"
+RDEPENDS:${PN} = "perl-module-posix"
+PR = "r3"
 
 SRC_URI = "http://search.cpan.org/CPAN/authors/id/N/NI/NIKIP/Authen-PAM-${PV}.tar.gz;name=authen-pam-perl-${PV} \
 	   file://dotinc.patch"

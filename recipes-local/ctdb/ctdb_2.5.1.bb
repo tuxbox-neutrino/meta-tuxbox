@@ -13,6 +13,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504 \
                     file://${COMMON_LICENSE_DIR}/LGPL-3.0;md5=bfccfe952269fff2b407dd11f2f3083b \
                     file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6 \
                     "
+PR = "r1"
 
 SRC_URI = "https://ftp.samba.org/pub/${PN}/${BP}.tar.gz \
            file://01-support-cross-compile-for-linux-os.patch \
@@ -27,7 +28,7 @@ inherit autotools-brokensep pkgconfig systemd
 PARALLEL_MAKE = ""
 
 DEPENDS += "popt libtevent libtalloc"
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 do_configure() {
     oe_runconf
@@ -39,6 +40,6 @@ do_install:append() {
     sed -i -e 's,/usr/sbin/,${sbindir}/,' ${D}${systemd_unitdir}/system/ctdb.service
 }
 
-SYSTEMD_SERVICE_${PN} = "ctdb.service"
+SYSTEMD_SERVICE:${PN} = "ctdb.service"
 
-FILES_${PN} += "/run"
+FILES:${PN} += "/run"

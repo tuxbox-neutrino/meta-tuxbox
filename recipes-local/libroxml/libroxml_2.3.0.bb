@@ -12,7 +12,7 @@ SRC_URI[sha256sum] = "1da8f20b530eba4409f2b217587d2f1281ff5d9ba45b24aeac71b94c6c
 
 SRC_URI = "http://download.libroxml.net/pool/v2.x/${P}.tar.gz"
 
-PR = "1"
+PR = "2"
 
 inherit cmake
 
@@ -24,8 +24,9 @@ EXTRA_OECMAKE = " \
 "
 
 PACKAGES =+ "roxml roxml-dbg"
-FILES_roxml = "${bindir}/*"
-FILES_roxml-dbg = "${bindir}/.debug/*"
+FILES:roxml = "${bindir}/*"
+FILES:roxml-dbg = "${bindir}/.debug/*"
+DEBIAN_NOAUTONAME:${PN} = "1"
 
 
 

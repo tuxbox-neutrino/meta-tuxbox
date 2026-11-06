@@ -5,7 +5,7 @@ LICENSE = "GPL-3.0+ & LGPL-3.0+ & GPL-2.0+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504 \
                     file://${COMMON_LICENSE_DIR}/LGPL-3.0;md5=bfccfe952269fff2b407dd11f2f3083b \
                     file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6 "
-PR = "r1"
+PR = "r2"
 
 SAMBA_MIRROR = "http://samba.org/samba/ftp"
 MIRRORS += "\
@@ -78,7 +78,7 @@ PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd zeroconf', d)}
                    acl cups ad-dc gnutls ldap mitkrb5 \
 "
 
-RDEPENDS_${PN}-ctdb-tests += "bash util-linux-getopt"
+RDEPENDS:${PN}-ctdb-tests += "bash util-linux-getopt"
 
 PACKAGECONFIG[acl] = "--with-acl-support,--without-acl-support,acl"
 PACKAGECONFIG[fam] = "--with-fam,--without-fam,gamin"
@@ -216,7 +216,7 @@ PACKAGES =+ "${PN}-python3 ${PN}-pidl \
 python samba_populate_packages() {
     def module_hook(file, pkg, pattern, format, basename):
         pn = d.getVar('PN')
-        d.appendVar('RRECOMMENDS_%s-base' % pn, ' %s' % pkg)
+        d.appendVar('RRECOMMENDS:%s-base' % pn, ' %s' % pkg)
 
     mlprefix = d.getVar('MLPREFIX') or ''
     pam_libdir = d.expand('${base_libdir}/security')
@@ -236,22 +236,22 @@ python samba_populate_packages() {
 PACKAGESPLITFUNCS:prepend = "samba_populate_packages "
 PACKAGES_DYNAMIC = "samba-auth-.* samba-pdb-.*"
 
-RDEPENDS_${PN} += "${PN}-base ${PN}-python3 ${PN}-dsdb-modules python3"
-RDEPENDS_${PN}-python3 += "pytalloc python3-tdb"
+RDEPENDS:${PN} += "${PN}-base ${PN}-python3 ${PN}-dsdb-modules python3"
+RDEPENDS:${PN}-python3 += "pytalloc python3-tdb"
 
-FILES_${PN}-base = "${sbindir}/nmbd \
+FILES:${PN}-base = "${sbindir}/nmbd \
                     ${sbindir}/smbd \
                     ${sysconfdir}/init.d \
                     ${systemd_system_unitdir}/nmb.service \
                     ${systemd_system_unitdir}/smb.service"
 
-FILES_${PN}-ad-dc = "${sbindir}/samba \
+FILES:${PN}-ad-dc = "${sbindir}/samba \
                      ${systemd_system_unitdir}/samba.service \
                      ${libdir}/krb5/plugins/kdb/samba.so \
 "
-RDEPENDS_${PN}-ad-dc = "krb5-kdc"
+RDEPENDS:${PN}-ad-dc = "krb5-kdc"
 
-FILES_${PN}-ctdb-tests = "${bindir}/ctdb_run_tests \
+FILES:${PN}-ctdb-tests = "${bindir}/ctdb_run_tests \
                           ${bindir}/ctdb_run_cluster_tests \
                           ${sysconfdir}/ctdb/nodes \
                           ${datadir}/ctdb-tests \
@@ -259,34 +259,34 @@ FILES_${PN}-ctdb-tests = "${bindir}/ctdb_run_tests \
                           ${localstatedir}/lib/ctdb \
                          "
 
-FILES_${BPN}-common = "${sysconfdir}/default \
+FILES:${BPN}-common = "${sysconfdir}/default \
                        ${sysconfdir}/samba \
                        ${sysconfdir}/tmpfiles.d \
                        ${localstatedir}/lib/samba \
                        ${localstatedir}/spool/samba \
 "
 
-FILES_${PN} += "${libdir}/vfs/*.so \
+FILES:${PN} += "${libdir}/vfs/*.so \
                 ${libdir}/charset/*.so \
                 ${libdir}/*.dat \
                 ${libdir}/auth/*.so \
                 ${datadir}/ctdb/events/* \
 "
 
-FILES_${PN}-dsdb-modules = "${libdir}/samba/ldb"
+FILES:${PN}-dsdb-modules = "${libdir}/samba/ldb"
 
-FILES_${PN}-testsuite = "${bindir}/gentest \
+FILES:${PN}-testsuite = "${bindir}/gentest \
                          ${bindir}/locktest \
                          ${bindir}/masktest \
                          ${bindir}/ndrdump \
                          ${bindir}/smbtorture"
 
-FILES_registry-tools = "${bindir}/regdiff \
+FILES:registry-tools = "${bindir}/regdiff \
                         ${bindir}/regpatch \
                         ${bindir}/regshell \
                         ${bindir}/regtree"
 
-FILES_winbind = "${sbindir}/winbindd \
+FILES:winbind = "${sbindir}/winbindd \
                  ${bindir}/wbinfo \
                  ${bindir}/ntlm_auth \
                  ${libdir}/samba/idmap \
@@ -296,9 +296,9 @@ FILES_winbind = "${sbindir}/winbindd \
                  ${sysconfdir}/init.d/winbind \
                  ${systemd_system_unitdir}/winbind.service"
 
-FILES_${PN}-python3 = "${PYTHON_SITEPACKAGES_DIR}"
+FILES:${PN}-python3 = "${PYTHON_SITEPACKAGES_DIR}"
 
-FILES_smbclient = "${bindir}/cifsdd \
+FILES:smbclient = "${bindir}/cifsdd \
                    ${bindir}/rpcclient \
                    ${bindir}/smbcacls \
                    ${bindir}/smbclient \
@@ -309,29 +309,29 @@ FILES_smbclient = "${bindir}/cifsdd \
                    ${bindir}/smbtree \
                    ${libdir}/samba/smbspool_krb5_wrapper"
 
-RDEPENDS_${PN}-pidl:append = " perl"
-FILES_${PN}-pidl = "${bindir}/pidl ${datadir}/perl5/Parse"
+RDEPENDS:${PN}-pidl:append = " perl"
+FILES:${PN}-pidl = "${bindir}/pidl ${datadir}/perl5/Parse"
 
-RDEPENDS_${PN}-client = "\
+RDEPENDS:${PN}-client = "\
     smbclient \
     winbind \
     registry-tools \
     ${PN}-pidl \
     "
 
-ALLOW_EMPTY_${PN}-client = "1"
+ALLOW_EMPTY:${PN}-client = "1"
 
-RDEPENDS_${PN}-server = "\
+RDEPENDS:${PN}-server = "\
     ${PN} \
     winbind \
     registry-tools \
     "
 
-ALLOW_EMPTY_${PN}-server = "1"
+ALLOW_EMPTY:${PN}-server = "1"
 
-RDEPENDS_${PN}-test = "\
+RDEPENDS:${PN}-test = "\
     ${PN}-ctdb-tests \
     ${PN}-testsuite \
     "
 
-ALLOW_EMPTY_${PN}-test = "1"
+ALLOW_EMPTY:${PN}-test = "1"
