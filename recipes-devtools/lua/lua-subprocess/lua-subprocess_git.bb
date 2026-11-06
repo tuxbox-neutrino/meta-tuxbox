@@ -3,7 +3,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 HOMEPAGE = "https://github.com/xlq/lua-subprocess.git"
 DEPENDS += "virtual/lua"
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 
 include ../lua.inc
 
@@ -14,7 +14,7 @@ SRC_URI = "git://github.com/xlq/lua-subprocess.git;protocol=https;branch=master 
 
 SRCREV = "b5f84612acb625a0b564aa50f18614180a2a404e"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -33,7 +33,7 @@ do_install () {
 	install -m 755 ${S}/subprocess.so ${D}${libdir}/lua/${LUA_VER}
 }
 
-FILES_${PN} = "/usr/lib"
+FILES:${PN} = "/usr/lib"
 
 
 BBCLASSEXTEND = "native nativesdk"

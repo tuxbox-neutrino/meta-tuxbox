@@ -3,7 +3,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 HOMEPAGE = "https://github.com/LuaLanes/lanes.git"
 DEPENDS += "virtual/lua"
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 
 include ../lua.inc
 
@@ -12,7 +12,7 @@ SRC_URI = "git://github.com/LuaLanes/lanes.git;protocol=https;branch=master \
 
 SRCREV = "${AUTOREV}"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -26,6 +26,6 @@ do_install:append() {
 	mv ${D}/usr/share/lua/lmod/lanes.lua ${D}/usr/share/lua/${LUA_VER}/ 
 }
 
-FILES_${PN} = "/usr"
+FILES:${PN} = "/usr"
 
 BBCLASSEXTEND = "native nativesdk"

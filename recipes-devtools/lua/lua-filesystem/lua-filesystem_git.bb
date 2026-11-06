@@ -3,7 +3,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 HOMEPAGE = "https://github.com/keplerproject/luafilesystem.git"
 DEPENDS += "virtual/lua"
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 
 include ../lua.inc
 
@@ -13,7 +13,7 @@ SRC_URI = "git://github.com/keplerproject/luafilesystem.git;protocol=https;branc
 
 SRCREV = "1dfb8c41e8a7e689959baeaf2961437db9615f74"
 PV = "${SRCPV}"
-PR = "1"
+PR = "2"
 
 S = "${WORKDIR}/git"
 
@@ -28,8 +28,8 @@ do_install () {
 	install -m 755 ${S}/src/lfs.so ${D}${libdir}/lua/${LUA_VER}
 }
 
-FILES_${PN} += "${libdir}/lua/${LUA_VER}/lfs.so"
-FILES-dbg_${PN} += "${libdir}/lua/${LUA_VER}/.debug/lfs.so"
+FILES:${PN} += "${libdir}/lua/${LUA_VER}/lfs.so"
+FILES:${PN}-dbg += "${libdir}/lua/${LUA_VER}/.debug/lfs.so"
 
 BBCLASSEXTEND = "native nativesdk"
 

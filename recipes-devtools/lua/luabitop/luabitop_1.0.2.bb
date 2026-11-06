@@ -1,9 +1,10 @@
 DESCRIPTION = "LuaBitOp"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+PR = "r1"
 HOMEPAGE = "https://bitop.luajit.org"
 DEPENDS += "virtual/lua virtual/lua-native"
-RDEPENDS_${PN} += "virtual/lua"
+RDEPENDS:${PN} += "virtual/lua"
 
 include ../lua.inc
 
@@ -34,7 +35,7 @@ do_install () {
 	install -m644 bit.so ${D}${libdir}/lua/${LUA_VER}/bit32.so
 }
 
-FILES_${PN} =  "/usr/lib \
+FILES:${PN} =  "/usr/lib \
 "
 
 BBCLASSEXTEND = "native nativesdk"
