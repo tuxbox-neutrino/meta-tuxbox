@@ -2,7 +2,7 @@ DESCRIPTION = "USB ATSC driver for Hauppauge WinTV-HVR Tuners"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	kernel-module-au0828 \
 	kernel-module-au8522 \
 	kernel-module-au8522-common \
@@ -22,3 +22,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.1"
+PR = "r1"

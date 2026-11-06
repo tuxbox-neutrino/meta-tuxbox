@@ -2,7 +2,7 @@ DESCRIPTION = "USB DVB driver for dtt200u chipsets"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	firmware-dvb-usb-dtt200u-01 \
 	firmware-dvb-usb-wt220u-02 \
 	firmware-dvb-usb-wt220u-fc03 \
@@ -12,3 +12,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.1"
+PR = "r1"

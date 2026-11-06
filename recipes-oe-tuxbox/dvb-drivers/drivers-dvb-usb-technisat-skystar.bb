@@ -2,7 +2,7 @@ DESCRIPTION = "USB DVB driver for Technisat Skystar HD"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	blindscan-s2 \
 	firmware-dvb-usb-technisat-skystar \
 	kernel-module-dvb-usb-technisat-usb2 \
@@ -11,3 +11,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.0"
+PR = "r1"

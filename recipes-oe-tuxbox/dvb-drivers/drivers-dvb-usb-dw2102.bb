@@ -2,7 +2,7 @@ DESCRIPTION = "USB DVB driver for DW210x/DW310x chipset"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	kernel-module-dvb-usb-dw2102 \
 	kernel-module-stb6100 \
 	kernel-module-stv090x \
@@ -11,3 +11,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.1"
+PR = "r1"

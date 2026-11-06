@@ -2,7 +2,7 @@ SUMMARY = "USB DVB driver for Realtek RTL2832 chipset"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	kernel-module-dvb-usb-rtl2832 \
 	kernel-module-dvb-usb-rtl28xxu \
 	kernel-module-e4000 \
@@ -18,3 +18,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.1"
+PR = "r1"

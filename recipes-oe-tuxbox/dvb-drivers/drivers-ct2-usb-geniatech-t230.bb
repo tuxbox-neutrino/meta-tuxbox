@@ -2,7 +2,7 @@ DESCRIPTION = "USB geniatech driver for T230"
 
 require dvb-usb-drivers-meta.inc
 
-RRECOMMENDS_${PN} = " \
+RRECOMMENDS:${PN} = " \
 	kernel-module-dvb-usb-cxusb \
 	kernel-module-si2157 \
 	kernel-module-si2168 \
@@ -10,3 +10,4 @@ RRECOMMENDS_${PN} = " \
 	"
 
 PV = "1.0"
+PR = "r1"
