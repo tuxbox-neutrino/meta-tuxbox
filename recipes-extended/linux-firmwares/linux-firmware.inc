@@ -1,6 +1,7 @@
 inherit allarch
 
 PV = "${SRCPV}"
+PR = "r1"
 
 SRC_URI = "git://github.com/Toysoft/linux-firmware.git;protocol=https;branch=master \
 	   file://license \
@@ -15,4 +16,4 @@ SRCREV = "${AUTOREV}"
 
 PACKAGES = "${PN}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-FILES_${PN} += "${base_libdir}/firmware"
+FILES:${PN} += "${base_libdir}/firmware"
