@@ -19,4 +19,5 @@ EXTRA_OECONF = " \
 		WESTON_NATIVE_BACKEND=fbdev-backend.so \
 		"
 
-RDEPENDS_${PN} += "weston-init"
+RDEPENDS:${PN} += "weston-init"
+PR:append = ".1"

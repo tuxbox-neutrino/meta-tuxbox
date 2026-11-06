@@ -8,7 +8,7 @@ SRC_URI += "file://weston.service \
 
 REQUIRED_DISTRO_FEATURES = ""
 
-SYSTEMD_SERVICE_${PN} = "weston.service"		
+SYSTEMD_SERVICE:${PN} = "weston.service"
 SYSTEMD_AUTO_ENABLE = "disable"
 
 do_install:append() {
@@ -19,5 +19,6 @@ do_install:append() {
 	install -m 644 ${WORKDIR}/start_weston* ${D}${datadir}/tuxbox/neutrino/plugins
 }
 
-FILES_${PN} += "${datadir}"
+FILES:${PN} += "${datadir}"
+PR:append = ".1"
 
